@@ -1,32 +1,35 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from collections import defaultdict
 
-def summarize_week(file_path):
+def summarize_weekly_workouts(log_file="workout_log.txt"):
+    weekly_totals = defaultdict(int)
+
     try:
-        with open(file_path, "r") as file:
-            lines = file.readlines()
+        with open(log_file, "r") as file:
+            for line in file:
+                if not line.strip() or " - " not in line:
+                    continue
 
-        today = datetime.now()
-        week_ago = today - timedelta(days=7)
-
-        workouts_this_week = []
-
-        for line in lines:
-            if "-" in line:
                 date_str = line.split(" - ")[0].strip()
                 try:
-                    workout_date = datetime.strptime(date_str, "%Y-%m-%d")
-                    if week_ago.date() <= workout_date.date() <= today.date():
-                        workouts_this_week.append(workout_date.strftime("%A"))
+                    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+                    year, week_num, _ = date_obj.isocalendar()
+                    weekly_totals[f"Week {week_num}, {year}"] += 1
                 except ValueError:
-                    pass  # Skip lines with bad date formatting
+                    continue
 
-        if workouts_this_week:
-            print(f"✅ You trained {len(workouts_this_week)} times in the past 7 days.")
-            print("📅 Days trained:", ", ".join(sorted(set(workouts_this_week))))
-        else:
-            print("❌ No workouts logged in the past 7 days.")
+        if not weekly_totals:
+            print("📭 No valid workout entries found.")
+            return
+
+        print("📅 Weekly Workout Summary:\n")
+        for week in sorted(weekly_totals):
+            print(f"{week}: {weekly_totals[week]} workout(s)")
 
     except FileNotFoundError:
-        print("workout_log.txt not found.")
+        print("❌ workout_log.txt not found.")
+    except Exception as e:
+        print(f"⚠️ Error: {e}")
 
-summarize_week("workout_log.txt")
+summarize_weekly_workouts()
+
