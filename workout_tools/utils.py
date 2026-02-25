@@ -2,19 +2,20 @@ import datetime
 
 LOG_FILE = "data/workout_log.txt"
 
-def read_lines():
+def parse_entries():
     try:
         with open(LOG_FILE, "r") as f:
-            return f.readlines()
+            lines = f.readlines()
     except FileNotFoundError:
+        print("Log file not found.")
         return []
 
-def parse_entries():
-    lines = read_lines()
     entries = []
+    skipped = 0
 
     for line in lines:
         if " - " not in line or ":" not in line:
+            skipped += 1
             continue
 
         try:
@@ -31,6 +32,10 @@ def parse_entries():
             })
 
         except:
-            continue
+            skipped += 1
+
+    print(f"\nParsed {len(entries)} entries.")
+    if skipped:
+        print(f"Skipped {skipped} malformed lines.")
 
     return entries
