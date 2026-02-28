@@ -1,10 +1,11 @@
-from workout_tools.utils import parse_entries
 from collections import defaultdict
+
+from workout_tools.utils import parse_entries
+from workout_tools.service import get_personal_records
 
 
 def total_reps_by_exercise(entries):
     totals = defaultdict(int)
-
     for entry in entries:
         totals[entry["exercise"]] += entry["reps"]
 
@@ -15,7 +16,6 @@ def total_reps_by_exercise(entries):
 
 def reps_by_day(entries):
     daily = defaultdict(int)
-
     for entry in entries:
         day = entry["date"].date()
         daily[day] += entry["reps"]
@@ -27,7 +27,6 @@ def reps_by_day(entries):
 
 def most_logged_exercise(entries):
     counts = defaultdict(int)
-
     for entry in entries:
         counts[entry["exercise"]] += 1
 
@@ -39,6 +38,18 @@ def most_logged_exercise(entries):
     print(f"\n🏆 Most Logged Exercise: {top} ({counts[top]} times)")
 
 
+def show_personal_records():
+    records = get_personal_records()
+
+    if not records:
+        print("No PR data yet.")
+        return
+
+    print("\n🏆 Personal Records:")
+    for ex, reps in records.items():
+        print(f"{ex} → {reps} reps")
+
+
 def menu():
     entries = parse_entries()
 
@@ -47,7 +58,8 @@ def menu():
         print("1) Total reps by exercise")
         print("2) Reps by day")
         print("3) Most logged exercise")
-        print("4) Quit")
+        print("4) Show personal records")
+        print("5) Quit")
 
         choice = input("Choose: ").strip()
 
@@ -58,6 +70,8 @@ def menu():
         elif choice == "3":
             most_logged_exercise(entries)
         elif choice == "4":
+            show_personal_records()
+        elif choice == "5":
             break
         else:
             print("Invalid option.")
