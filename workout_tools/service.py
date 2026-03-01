@@ -33,3 +33,14 @@ def get_most_logged_exercise():
         return None
 
     return max(counts, key=counts.get)
+def get_personal_records():
+    from collections import defaultdict
+    entries = parse_entries()
+    
+    records = defaultdict(int)
+
+    for e in entries:
+        if e["reps"] > records[e["exercise"]]:
+            records[e["exercise"]] = e["reps"]
+
+    return dict(records)
