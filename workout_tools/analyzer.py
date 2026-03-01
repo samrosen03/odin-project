@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from workout_tools.utils import parse_entries
-from workout_tools.service import get_personal_records
+from workout_tools.service import get_personal_records, get_consistency_score
 
 
 def total_reps_by_exercise(entries):
@@ -50,6 +50,11 @@ def show_personal_records():
         print(f"{ex} → {reps} reps")
 
 
+def show_consistency_score():
+    score = get_consistency_score()
+    print(f"\n🔥 Consistency Score: {score} workout days logged")
+
+
 def menu():
     entries = parse_entries()
 
@@ -59,7 +64,8 @@ def menu():
         print("2) Reps by day")
         print("3) Most logged exercise")
         print("4) Show personal records")
-        print("5) Quit")
+        print("5) Show consistency score")
+        print("6) Quit")
 
         choice = input("Choose: ").strip()
 
@@ -72,6 +78,8 @@ def menu():
         elif choice == "4":
             show_personal_records()
         elif choice == "5":
+            show_consistency_score()
+        elif choice == "6":
             break
         else:
             print("Invalid option.")
