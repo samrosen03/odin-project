@@ -1,7 +1,11 @@
 from collections import defaultdict
 
 from workout_tools.utils import parse_entries
-from workout_tools.service import get_personal_records, get_consistency_score
+from workout_tools.service import (
+    get_personal_records,
+    get_consistency_score,
+    get_longest_streak,
+)
 
 
 def total_reps_by_exercise(entries):
@@ -40,7 +44,6 @@ def most_logged_exercise(entries):
 
 def show_personal_records():
     records = get_personal_records()
-
     if not records:
         print("No PR data yet.")
         return
@@ -55,6 +58,11 @@ def show_consistency_score():
     print(f"\n🔥 Consistency Score: {score} workout days logged")
 
 
+def show_longest_streak():
+    streak = get_longest_streak()
+    print(f"\n🏅 Longest Streak: {streak} days")
+
+
 def menu():
     entries = parse_entries()
 
@@ -65,7 +73,8 @@ def menu():
         print("3) Most logged exercise")
         print("4) Show personal records")
         print("5) Show consistency score")
-        print("6) Quit")
+        print("6) Show longest streak")
+        print("7) Quit")
 
         choice = input("Choose: ").strip()
 
@@ -80,6 +89,8 @@ def menu():
         elif choice == "5":
             show_consistency_score()
         elif choice == "6":
+            show_longest_streak()
+        elif choice == "7":
             break
         else:
             print("Invalid option.")
