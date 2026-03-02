@@ -66,6 +66,15 @@ def show_longest_streak():
 def menu():
     entries = parse_entries()
 
+    actions = {
+        "1": lambda: total_reps_by_exercise(entries),
+        "2": lambda: reps_by_day(entries),
+        "3": lambda: most_logged_exercise(entries),
+        "4": show_personal_records,
+        "5": show_consistency_score,
+        "6": show_longest_streak,
+    }
+
     while True:
         print("\n==== ANALYZER MENU ====")
         print("1) Total reps by exercise")
@@ -78,20 +87,10 @@ def menu():
 
         choice = input("Choose: ").strip()
 
-        if choice == "1":
-            total_reps_by_exercise(entries)
-        elif choice == "2":
-            reps_by_day(entries)
-        elif choice == "3":
-            most_logged_exercise(entries)
-        elif choice == "4":
-            show_personal_records()
-        elif choice == "5":
-            show_consistency_score()
-        elif choice == "6":
-            show_longest_streak()
-        elif choice == "7":
+        if choice == "7":
             break
+        elif choice in actions:
+            actions[choice]()  # runs the function
         else:
             print("Invalid option.")
 
