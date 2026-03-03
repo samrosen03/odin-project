@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 
 from workout_tools.utils import parse_entries
@@ -90,9 +91,36 @@ def menu():
         if choice == "7":
             break
         elif choice in actions:
-            actions[choice]()  # runs the function
+            actions[choice]()
         else:
             print("Invalid option.")
 
 
-menu()
+def run_cli_mode(command):
+    entries = parse_entries()
+
+    if command == "total":
+        total_reps_by_exercise(entries)
+    elif command == "daily":
+        reps_by_day(entries)
+    elif command == "most":
+        most_logged_exercise(entries)
+    elif command == "prs":
+        show_personal_records()
+    elif command == "score":
+        show_consistency_score()
+    elif command == "streak":
+        show_longest_streak()
+    else:
+        print("Unknown command. Try: total, daily, most, prs, score, streak")
+
+
+def main():
+    if len(sys.argv) > 1:
+        run_cli_mode(sys.argv[1])
+    else:
+        menu()
+
+
+if __name__ == "__main__":
+    main()
