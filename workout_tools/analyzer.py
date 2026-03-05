@@ -7,7 +7,20 @@ from workout_tools.service import (
     get_consistency_score,
     get_longest_streak,
     search_exercise,
+    get_top_exercises,
 )
+
+
+def show_top_exercises():
+    results = get_top_exercises()
+
+    if not results:
+        print("No data available.")
+        return
+
+    print("\n🏆 Top 3 Exercises\n")
+    for name, reps in results:
+        print(f"{name} → {reps} reps")
 
 
 def total_reps_by_exercise(entries):
@@ -91,6 +104,7 @@ def menu():
         "5": show_consistency_score,
         "6": show_longest_streak,
         "8": search_exercise_history,
+        "9": show_top_exercises,
     }
 
     while True:
@@ -103,6 +117,7 @@ def menu():
         print("6) Show longest streak")
         print("7) Quit")
         print("8) Search exercise history")
+        print("9) Show top exercises")
 
         choice = input("Choose: ").strip()
 
@@ -131,8 +146,10 @@ def run_cli_mode(command):
         show_longest_streak()
     elif command == "search":
         search_exercise_history()
+    elif command == "top":
+        show_top_exercises()
     else:
-        print("Unknown command. Try: total, daily, most, prs, score, streak, search")
+        print("Unknown command. Try: total, daily, most, prs, score, streak, search, top")
 
 
 def main():
