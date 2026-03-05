@@ -44,3 +44,44 @@ def get_personal_records():
             records[e["exercise"]] = e["reps"]
 
     return dict(records)
+def get_consistency_score():
+    entries = parse_entries()
+
+    unique_days = set()
+
+    for e in entries:
+        unique_days.add(e["date"].date())
+
+    return len(unique_days)
+from datetime import timedelta
+
+def get_longest_streak():
+    entries = parse_entries()
+
+    if not entries:
+        return 0
+
+    # Get unique workout days
+    unique_days = sorted({e["date"].date() for e in entries})
+
+    longest = 1
+    current = 1
+
+    for i in range(1, len(unique_days)):
+        if unique_days[i] == unique_days[i - 1] + timedelta(days=1):
+            current += 1
+            longest = max(longest, current)
+        else:
+            current = 1
+
+    return longest
+def search_exercise(exercise_name):
+    entries = parse_entries()
+
+    results = []
+
+    for entry in entries:
+        if entry["exercise"].lower() == exercise_name.lower():
+            results.append(entry)
+
+    return results
