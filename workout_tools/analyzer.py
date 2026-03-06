@@ -1,6 +1,6 @@
 import sys
 from collections import defaultdict
-
+from workout_tools.service import get_high_intensity_workouts
 from workout_tools.utils import parse_entries
 from workout_tools.service import (
     get_personal_records,
@@ -105,6 +105,7 @@ def menu():
         "6": show_longest_streak,
         "8": search_exercise_history,
         "9": show_top_exercises,
+        "10": show_high_intensity,
     }
 
     while True:
@@ -118,7 +119,7 @@ def menu():
         print("7) Quit")
         print("8) Search exercise history")
         print("9) Show top exercises")
-
+        print("10) Show high intensity workouts")
         choice = input("Choose: ").strip()
 
         if choice == "7":
@@ -150,7 +151,21 @@ def run_cli_mode(command):
         show_top_exercises()
     else:
         print("Unknown command. Try: total, daily, most, prs, score, streak, search, top")
+def show_high_intensity():
+    results = get_high_intensity_workouts()
 
+    if not results:
+        print("No high intensity workouts found.")
+        return
+
+    print("\n🔥 High Intensity Workouts\n")
+
+    for entry in results:
+        date = entry["date"].date()
+        ex = entry["exercise"]
+        reps = entry["reps"]
+
+        print(f"{date} → {ex} ({reps} reps)")
 
 def main():
     if len(sys.argv) > 1:

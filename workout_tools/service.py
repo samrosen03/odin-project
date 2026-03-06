@@ -85,3 +85,27 @@ def search_exercise(exercise_name):
             results.append(entry)
 
     return results
+def get_top_exercises(limit=3):
+    entries = parse_entries()
+    totals = defaultdict(int)
+
+    for e in entries:
+        totals[e["exercise"]] += e["reps"]
+
+    sorted_exercises = sorted(
+        totals.items(),
+        key=lambda item: item[1],
+        reverse=True
+    )
+
+    return sorted_exercises[:limit]
+def get_high_intensity_workouts(threshold=50):
+    entries = parse_entries()
+
+    results = []
+
+    for e in entries:
+        if e["reps"] >= threshold:
+            results.append(e)
+
+    return results
