@@ -106,6 +106,7 @@ def menu():
         "8": search_exercise_history,
         "9": show_top_exercises,
         "10": show_high_intensity,
+        "11": show_dashboard,
     }
 
     while True:
@@ -120,6 +121,7 @@ def menu():
         print("8) Search exercise history")
         print("9) Show top exercises")
         print("10) Show high intensity workouts")
+        print("11) Show dashboard summary")
         choice = input("Choose: ").strip()
 
         if choice == "7":
@@ -172,7 +174,23 @@ def main():
         run_cli_mode(sys.argv[1])
     else:
         menu()
+def show_dashboard():
+    entries = parse_entries()
 
+    total_reps = sum(e["reps"] for e in entries)
+    most_ex = most_logged_exercise(entries)
+    consistency = get_consistency_score()
+    streak = get_longest_streak()
+
+    print("\n📊 WORKOUT DASHBOARD\n")
+
+    print(f"Total Reps Logged: {total_reps}")
+
+    if most_ex:
+        print(f"Most Logged Exercise: {most_ex}")
+
+    print(f"Workout Days Logged: {consistency}")
+    print(f"Longest Streak: {streak} days")
 
 if __name__ == "__main__":
     main()
