@@ -2,6 +2,7 @@ import sys
 from collections import defaultdict
 from workout_tools.service import get_high_intensity_workouts
 from workout_tools.utils import parse_entries
+from workout_tools.service import get_invalid_entries
 from workout_tools.service import (
     get_personal_records,
     get_consistency_score,
@@ -92,6 +93,21 @@ def search_exercise_history():
         reps = entry["reps"]
         print(f"{date} → {reps} reps")
 
+def show_invalid_entries():
+    problems = get_invalid_entries()
+
+    if not problems:
+        print("No invalid entries found.")
+        return
+
+    print("\n⚠️ Invalid Entries\n")
+
+    for entry, reason in problems:
+        date = entry["date"].date()
+        ex = entry["exercise"]
+        reps = entry["reps"]
+
+        print(f"{date} → {ex} ({reps}) — {reason}")
 
 def menu():
     entries = parse_entries()
@@ -107,6 +123,7 @@ def menu():
         "9": show_top_exercises,
         "10": show_high_intensity,
         "11": show_dashboard,
+        "12": show_invalid_entries,
     }
 
     while True:
@@ -122,6 +139,7 @@ def menu():
         print("9) Show top exercises")
         print("10) Show high intensity workouts")
         print("11) Show dashboard summary")
+        print("12) Show invalid entries")
         choice = input("Choose: ").strip()
 
         if choice == "7":

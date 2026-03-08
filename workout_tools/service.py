@@ -109,3 +109,16 @@ def get_high_intensity_workouts(threshold=50):
             results.append(e)
 
     return results
+def get_invalid_entries():
+    entries = parse_entries()
+    problems = []
+
+    for e in entries:
+
+        if not e["exercise"]:
+            problems.append((e, "Missing exercise name"))
+
+        elif e["reps"] <= 0:
+            problems.append((e, "Invalid rep count"))
+
+    return problems
