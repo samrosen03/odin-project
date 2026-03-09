@@ -3,6 +3,7 @@ from collections import defaultdict
 from workout_tools.service import get_high_intensity_workouts
 from workout_tools.utils import parse_entries
 from workout_tools.service import get_invalid_entries
+from workout_tools.service import get_average_reps_per_exercise
 from workout_tools.service import (
     get_personal_records,
     get_consistency_score,
@@ -109,6 +110,18 @@ def show_invalid_entries():
 
         print(f"{date} → {ex} ({reps}) — {reason}")
 
+def show_average_reps():
+    averages = get_average_reps_per_exercise()
+
+    if not averages:
+        print("No data available.")
+        return
+
+    print("\n📊 Average Reps Per Exercise\n")
+
+    for ex, avg in averages.items():
+        print(f"{ex} → {avg:.1f} avg reps")
+
 def menu():
     entries = parse_entries()
 
@@ -124,6 +137,7 @@ def menu():
         "10": show_high_intensity,
         "11": show_dashboard,
         "12": show_invalid_entries,
+        "13": show_average_reps,
     }
 
     while True:
@@ -140,6 +154,7 @@ def menu():
         print("10) Show high intensity workouts")
         print("11) Show dashboard summary")
         print("12) Show invalid entries")
+        print("13) Show average reps per exercise")
         choice = input("Choose: ").strip()
 
         if choice == "7":

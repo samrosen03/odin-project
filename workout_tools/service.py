@@ -122,3 +122,21 @@ def get_invalid_entries():
             problems.append((e, "Invalid rep count"))
 
     return problems
+    
+def get_average_reps_per_exercise():
+    entries = parse_entries()
+
+    totals = defaultdict(int)
+    counts = defaultdict(int)
+
+    for e in entries:
+        exercise = e["exercise"]
+        totals[exercise] += e["reps"]
+        counts[exercise] += 1
+
+    averages = {}
+
+    for exercise in totals:
+        averages[exercise] = totals[exercise] / counts[exercise]
+
+    return averages
