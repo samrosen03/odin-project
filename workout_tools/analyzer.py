@@ -1,15 +1,17 @@
 import sys
 from collections import defaultdict
-from workout_tools.service import get_high_intensity_workouts
+
 from workout_tools.utils import parse_entries
-from workout_tools.service import get_invalid_entries
-from workout_tools.service import get_average_reps_per_exercise
 from workout_tools.service import (
     get_personal_records,
     get_consistency_score,
     get_longest_streak,
     search_exercise,
     get_top_exercises,
+    get_high_intensity_workouts,
+    get_invalid_entries,
+    get_average_reps_per_exercise,
+    generate_report,
 )
 
 
@@ -53,10 +55,11 @@ def most_logged_exercise(entries):
 
     if not counts:
         print("No workouts logged.")
-        return
+        return None
 
     top = max(counts, key=counts.get)
     print(f"\n🏆 Most Logged Exercise: {top} ({counts[top]} times)")
+    return top
 
 
 def show_personal_records():
@@ -94,6 +97,7 @@ def search_exercise_history():
         reps = entry["reps"]
         print(f"{date} → {reps} reps")
 
+
 def show_invalid_entries():
     problems = get_invalid_entries()
 
@@ -107,8 +111,8 @@ def show_invalid_entries():
         date = entry["date"].date()
         ex = entry["exercise"]
         reps = entry["reps"]
-
         print(f"{date} → {ex} ({reps}) — {reason}")
+
 
 def show_average_reps():
     averages = get_average_reps_per_exercise()
@@ -118,9 +122,56 @@ def show_average_reps():
         return
 
     print("\n📊 Average Reps Per Exercise\n")
-
     for ex, avg in averages.items():
         print(f"{ex} → {avg:.1f} avg reps")
+
+
+def export_report():
+    report = generate_report()
+
+    with open("reports/workout_report.txt", "w") as f:
+        f.write(report)
+
+    print("📄 Report saved to reports/workout_report.txt")
+
+
+def show_high_intensity():
+    results = get_high_intensity_workouts()
+
+    if not results:
+        print("No high intensity workouts found.")
+        return
+
+    print("\n🔥 High Intensity Workouts\n")
+
+    for entry in results:
+        date = entry["date"].date()
+        ex = entry["exercise"]
+        reps = entry["reps"]
+        print(f"{date} → {ex} ({reps} reps)")
+
+
+def show_dashboard():
+    entries = parse_entries()
+
+    total_reps = sum(e["reps"] for e in entries)
+    consistency = get_consistency_score()
+    streak = get_longest_streak()
+
+    counts = defaultdict(int)
+    for e in entries:
+        counts[e["exercise"]] += 1
+    most_ex = max(counts, key=counts.get) if counts else None
+
+    print("\n📊 WORKOUT DASHBOARD\n")
+    print(f"Total Reps Logged: {total_reps}")
+
+    if most_ex:
+        print(f"Most Logged Exercise: {most_ex}")
+
+    print(f"Workout Days Logged: {consistency}")
+    print(f"Longest Streak: {streak} days")
+
 
 def menu():
     entries = parse_entries()
@@ -138,6 +189,7 @@ def menu():
         "11": show_dashboard,
         "12": show_invalid_entries,
         "13": show_average_reps,
+        "14": export_report,
     }
 
     while True:
@@ -155,6 +207,8 @@ def menu():
         print("11) Show dashboard summary")
         print("12) Show invalid entries")
         print("13) Show average reps per exercise")
+        print("14) Export workout report")
+
         choice = input("Choose: ").strip()
 
         if choice == "7":
@@ -184,46 +238,26 @@ def run_cli_mode(command):
         search_exercise_history()
     elif command == "top":
         show_top_exercises()
+    elif command == "high":
+        show_high_intensity()
+    elif command == "dashboard":
+        show_dashboard()
+    elif command == "invalid":
+        show_invalid_entries()
+    elif command == "average":
+        show_average_reps()
+    elif command == "report":
+        export_report()
     else:
-        print("Unknown command. Try: total, daily, most, prs, score, streak, search, top")
-def show_high_intensity():
-    results = get_high_intensity_workouts()
+        print("Unknown command. Try: total, daily, most, prs, score, streak, search, top, high, dashboard, invalid, average, report")
 
-    if not results:
-        print("No high intensity workouts found.")
-        return
-
-    print("\n🔥 High Intensity Workouts\n")
-
-    for entry in results:
-        date = entry["date"].date()
-        ex = entry["exercise"]
-        reps = entry["reps"]
-
-        print(f"{date} → {ex} ({reps} reps)")
 
 def main():
     if len(sys.argv) > 1:
         run_cli_mode(sys.argv[1])
     else:
         menu()
-def show_dashboard():
-    entries = parse_entries()
 
-    total_reps = sum(e["reps"] for e in entries)
-    most_ex = most_logged_exercise(entries)
-    consistency = get_consistency_score()
-    streak = get_longest_streak()
-
-    print("\n📊 WORKOUT DASHBOARD\n")
-
-    print(f"Total Reps Logged: {total_reps}")
-
-    if most_ex:
-        print(f"Most Logged Exercise: {most_ex}")
-
-    print(f"Workout Days Logged: {consistency}")
-    print(f"Longest Streak: {streak} days")
 
 if __name__ == "__main__":
     main()
