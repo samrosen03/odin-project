@@ -11,7 +11,7 @@ from workout_tools.service import (
     get_high_intensity_workouts,
     get_invalid_entries,
     get_average_reps_per_exercise,
-    generate_report,
+    generate_report,get_monthly_reps,
 )
 
 
@@ -172,6 +172,16 @@ def show_dashboard():
     print(f"Workout Days Logged: {consistency}")
     print(f"Longest Streak: {streak} days")
 
+def show_monthly_reps():
+    results = get_monthly_reps()
+
+    if not results:
+        print("No data available.")
+        return
+
+    print("\n📆 Total Reps By Month\n")
+    for month, total in results.items():
+        print(f"{month}: {total}")
 
 def menu():
     entries = parse_entries()
@@ -190,6 +200,7 @@ def menu():
         "12": show_invalid_entries,
         "13": show_average_reps,
         "14": export_report,
+        "15": show_monthly_reps,
     }
 
     while True:
@@ -208,6 +219,7 @@ def menu():
         print("12) Show invalid entries")
         print("13) Show average reps per exercise")
         print("14) Export workout report")
+        print("15) Show monthly reps")
 
         choice = input("Choose: ").strip()
 
@@ -248,6 +260,8 @@ def run_cli_mode(command):
         show_average_reps()
     elif command == "report":
         export_report()
+    elif command == "monthly":
+        show_monthly_reps()
     else:
         print("Unknown command. Try: total, daily, most, prs, score, streak, search, top, high, dashboard, invalid, average, report")
 

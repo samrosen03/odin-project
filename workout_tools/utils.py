@@ -1,41 +1,33 @@
-import datetime
+import json
+from datetime import datetime
 
-LOG_FILE = "data/workout_log.txt"
+LOG_FILE = "data/workout_log.json"
 
-def parse_entries():
+
+def read_entries():
     try:
         with open(LOG_FILE, "r") as f:
-            lines = f.readlines()
+            return json.load(f)
     except FileNotFoundError:
         print("Log file not found.")
         return []
+    except json.JSONDecodeError:
+        print("Log file is empty or invalid.")
+        return []
 
-    entries = []
-    skipped = 0
 
-    for line in lines:
-        if " - " not in line or ":" not in line:
-            skipped += 1
+def parse_entries():
+    raw_entries = read_entries()
+    parsed = []
+
+    for entry in raw_entries:
+        try:
+            parsed.append({
+                "date": datetime.strptime(entry["date"], "%Y-%m-%d"),
+                "exercise": entry["exercise"],
+                "reps": int(entry["reps"])
+            })
+        except (KeyError, ValueError, TypeError):
             continue
 
-        try:
-            date_str, data = line.strip().split(" - ", 1)
-            date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
-
-            name, reps_part = data.split(":", 1)
-            reps = int(reps_part.strip().split()[0])
-
-            entries.append({
-                "date": date_obj,
-                "exercise": name.strip(),
-                "reps": reps
-            })
-
-        except:
-            skipped += 1
-
-    print(f"\nParsed {len(entries)} entries.")
-    if skipped:
-        print(f"Skipped {skipped} malformed lines.")
-
-    return entries
+    return parsed

@@ -140,3 +140,40 @@ def get_average_reps_per_exercise():
         averages[exercise] = totals[exercise] / counts[exercise]
 
     return averages
+def generate_report():
+    entries = parse_entries()
+
+    if not entries:
+        return "No workout data."
+
+    total_reps = sum(e["reps"] for e in entries)
+
+    unique_days = {e["date"].date() for e in entries}
+
+    totals = defaultdict(int)
+    for e in entries:
+        totals[e["exercise"]] += e["reps"]
+
+    top = sorted(totals.items(), key=lambda x: x[1], reverse=True)[:3]
+
+    report = []
+    report.append("WORKOUT SUMMARY\n")
+    report.append(f"Total Reps: {total_reps}")
+    report.append(f"Workout Days: {len(unique_days)}")
+
+    report.append("\nTop Exercises:")
+
+    for ex, reps in top:
+        report.append(f"{ex} - {reps}")
+
+    return "\n".join(report)
+
+def get_monthly_reps():
+    entries = parse_entries()
+    monthly_totals = defaultdict(int)
+
+    for e in entries:
+        month = e["date"].strftime("%Y-%m")
+        monthly_totals[month] += e["reps"]
+
+    return dict(sorted(monthly_totals.items()))
