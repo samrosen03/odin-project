@@ -11,7 +11,8 @@ from workout_tools.service import (
     get_high_intensity_workouts,
     get_invalid_entries,
     get_average_reps_per_exercise,
-    generate_report,get_monthly_reps,
+    generate_report,
+    get_monthly_reps,
 )
 
 
@@ -161,6 +162,7 @@ def show_dashboard():
     counts = defaultdict(int)
     for e in entries:
         counts[e["exercise"]] += 1
+
     most_ex = max(counts, key=counts.get) if counts else None
 
     print("\n📊 WORKOUT DASHBOARD\n")
@@ -172,6 +174,7 @@ def show_dashboard():
     print(f"Workout Days Logged: {consistency}")
     print(f"Longest Streak: {streak} days")
 
+
 def show_monthly_reps():
     results = get_monthly_reps()
 
@@ -182,6 +185,29 @@ def show_monthly_reps():
     print("\n📆 Total Reps By Month\n")
     for month, total in results.items():
         print(f"{month}: {total}")
+
+
+def show_help():
+    print("""
+Workout Analyzer Commands
+
+total       → Total reps by exercise
+daily       → Reps grouped by day
+most        → Most logged exercise
+prs         → Personal records
+score       → Consistency score
+streak      → Longest workout streak
+search      → Search exercise history
+top         → Top exercises
+high        → High intensity workouts
+dashboard   → Quick summary
+invalid     → Show invalid entries
+average     → Average reps per exercise
+report      → Export workout report
+monthly     → Monthly rep totals
+help        → Show this help menu
+""")
+
 
 def menu():
     entries = parse_entries()
@@ -262,8 +288,10 @@ def run_cli_mode(command):
         export_report()
     elif command == "monthly":
         show_monthly_reps()
+    elif command == "help":
+        show_help()
     else:
-        print("Unknown command. Try: total, daily, most, prs, score, streak, search, top, high, dashboard, invalid, average, report")
+        print("Unknown command. Try: help")
 
 
 def main():
