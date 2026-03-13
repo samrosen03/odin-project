@@ -186,6 +186,24 @@ def show_monthly_reps():
     for month, total in results.items():
         print(f"{month}: {total}")
 
+def show_stats():
+    entries = parse_entries()
+
+    total_reps = sum(e["reps"] for e in entries)
+    consistency = get_consistency_score()
+    streak = get_longest_streak()
+    top = get_top_exercises()
+
+    print("\n📊 WORKOUT STATS\n")
+
+    print(f"Total Reps: {total_reps}")
+    print(f"Workout Days: {consistency}")
+    print(f"Longest Streak: {streak} days")
+
+    if top:
+        print("\nTop Exercises:")
+        for ex, reps in top:
+            print(f"{ex} → {reps}")
 
 def show_help():
     print("""
@@ -206,6 +224,7 @@ average     → Average reps per exercise
 report      → Export workout report
 monthly     → Monthly rep totals
 help        → Show this help menu
+stats       → Overall workout summary
 """)
 
 
@@ -227,6 +246,7 @@ def menu():
         "13": show_average_reps,
         "14": export_report,
         "15": show_monthly_reps,
+        "16": show_stats,
     }
 
     while True:
@@ -246,6 +266,7 @@ def menu():
         print("13) Show average reps per exercise")
         print("14) Export workout report")
         print("15) Show monthly reps")
+        print("16) Show overall stats")
 
         choice = input("Choose: ").strip()
 
@@ -290,6 +311,8 @@ def run_cli_mode(command):
         show_monthly_reps()
     elif command == "help":
         show_help()
+    elif command == "stats":
+        show_stats()
     else:
         print("Unknown command. Try: help")
 
