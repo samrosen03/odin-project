@@ -208,6 +208,18 @@ def show_stats():
         for ex, reps in top:
             print(f"{ex} → {reps}")
 
+def clear_workouts():
+    confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
+
+    if confirm.lower() != "yes":
+        print("Cancelled.")
+        return
+
+    with open("data/workouts.txt", "w") as f:
+        f.write("")
+
+    print("🧹 Workout data cleared.")
+
 def show_help():
     print("""
 Workout Analyzer Commands
@@ -228,6 +240,7 @@ report      → Export workout report
 monthly     → Monthly rep totals
 help        → Show this help menu
 stats       → Overall workout summary
+clear       → Delete all workout entries
 """)
 
 
@@ -316,6 +329,8 @@ def run_cli_mode(command):
         show_help()
     elif command == "stats":
         show_stats()
+    elif command == "clear":
+        clear_workouts()
     else:
         print("Unknown command. Try: help")
 
