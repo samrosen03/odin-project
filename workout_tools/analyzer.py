@@ -1,4 +1,5 @@
 import sys
+import os
 from collections import defaultdict
 
 from workout_tools.utils import parse_entries
@@ -129,6 +130,8 @@ def show_average_reps():
 
 def export_report():
     report = generate_report()
+
+    os.makedirs("reports", exist_ok=True)
 
     with open("reports/workout_report.txt", "w") as f:
         f.write(report)
