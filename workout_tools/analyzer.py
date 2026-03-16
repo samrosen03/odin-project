@@ -17,14 +17,14 @@ from workout_tools.service import (
 )
 
 
-def show_top_exercises():
-    results = get_top_exercises()
+def show_top_exercises(limit=3):
+    results = get_top_exercises(limit)
 
     if not results:
         print("No data available.")
         return
 
-    print("\n🏆 Top 3 Exercises\n")
+    print(f"\n🏆 Top {limit} Exercises\n")
     for name, reps in results:
         print(f"{name} → {reps} reps")
 
@@ -37,7 +37,6 @@ def total_reps_by_exercise(entries):
     print("\n📊 Total Reps By Exercise:")
     for name, total in totals.items():
         print(f"{name}: {total}")
-
 
 def reps_by_day(entries):
     daily = defaultdict(int)
@@ -263,6 +262,7 @@ def menu():
         "14": export_report,
         "15": show_monthly_reps,
         "16": show_stats,
+        "17": clear_workouts,
     }
 
     while True:
@@ -283,6 +283,7 @@ def menu():
         print("14) Export workout report")
         print("15) Show monthly reps")
         print("16) Show overall stats")
+        print("17) Clear workout data")
 
         choice = input("Choose: ").strip()
 
@@ -312,7 +313,15 @@ def run_cli_mode(command):
     elif command == "search":
         search_exercise_history()
     elif command == "top":
-        show_top_exercises()
+        limit = 3
+
+        if len(sys.argv) > 2:
+            try:
+                limit = int(sys.argv[2])
+            except ValueError:
+                print("Invalid number. Using default of 3.")
+
+        show_top_exercises(limit)
     elif command == "high":
         show_high_intensity()
     elif command == "dashboard":
@@ -333,7 +342,6 @@ def run_cli_mode(command):
         clear_workouts()
     else:
         print("Unknown command. Try: help")
-
 
 def main():
     if len(sys.argv) > 1:
