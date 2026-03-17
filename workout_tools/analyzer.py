@@ -1,6 +1,7 @@
 import sys
 import os
 from collections import defaultdict
+from datetime import datetime
 
 from workout_tools.utils import parse_entries
 from workout_tools.service import (
@@ -37,6 +38,7 @@ def total_reps_by_exercise(entries):
     print("\n📊 Total Reps By Exercise:")
     for name, total in totals.items():
         print(f"{name}: {total}")
+
 
 def reps_by_day(entries):
     daily = defaultdict(int)
@@ -188,6 +190,7 @@ def show_monthly_reps():
     for month, total in results.items():
         print(f"{month}: {total}")
 
+
 def show_stats():
     entries = parse_entries()
 
@@ -197,7 +200,6 @@ def show_stats():
     top = get_top_exercises()
 
     print("\n📊 WORKOUT STATS\n")
-
     print(f"Total Reps: {total_reps}")
     print(f"Workout Days: {consistency}")
     print(f"Longest Streak: {streak} days")
@@ -206,6 +208,34 @@ def show_stats():
         print("\nTop Exercises:")
         for ex, reps in top:
             print(f"{ex} → {reps}")
+
+
+def show_range_summary(start_str, end_str):
+    try:
+        start = datetime.strptime(start_str, "%Y-%m-%d")
+        end = datetime.strptime(end_str, "%Y-%m-%d")
+    except ValueError:
+        print("Invalid date format. Use YYYY-MM-DD")
+        return
+
+    entries = parse_entries()
+
+    filtered = [
+        e for e in entries
+        if start <= e["date"] <= end
+    ]
+
+    if not filtered:
+        print("No data in this range.")
+        return
+
+    total_reps = sum(e["reps"] for e in filtered)
+    unique_days = {e["date"].date() for e in filtered}
+
+    print(f"\n📅 Workouts from {start_str} → {end_str}\n")
+    print(f"Total Reps: {total_reps}")
+    print(f"Workout Days: {len(unique_days)}")
+
 
 def clear_workouts():
     confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
@@ -218,6 +248,7 @@ def clear_workouts():
         f.write("")
 
     print("🧹 Workout data cleared.")
+
 
 def show_help():
     print("""
@@ -237,9 +268,10 @@ invalid     → Show invalid entries
 average     → Average reps per exercise
 report      → Export workout report
 monthly     → Monthly rep totals
-help        → Show this help menu
 stats       → Overall workout summary
+range       → Analyze workouts between two dates
 clear       → Delete all workout entries
+help        → Show this help menu
 """)
 
 
@@ -334,14 +366,23 @@ def run_cli_mode(command):
         export_report()
     elif command == "monthly":
         show_monthly_reps()
-    elif command == "help":
-        show_help()
     elif command == "stats":
         show_stats()
+    elif command == "range":
+        if len(sys.argv) < 4:
+            print("Usage: range YYYY-MM-DD YYYY-MM-DD")
+            return
+
+        start = sys.argv[2]
+        end = sys.argv[3]
+        show_range_summary(start, end)
+    elif command == "help":
+        show_help()
     elif command == "clear":
         clear_workouts()
     else:
         print("Unknown command. Try: help")
+
 
 def main():
     if len(sys.argv) > 1:
