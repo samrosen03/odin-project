@@ -139,6 +139,26 @@ def export_report():
 
     print("📄 Report saved to reports/workout_report.txt")
 
+def export_csv():
+    entries = parse_entries()
+
+    if not entries:
+        print("No data to export.")
+        return
+
+    os.makedirs("reports", exist_ok=True)
+
+    with open("reports/workouts.csv", "w") as f:
+        f.write("date,exercise,reps\n")
+
+        for e in entries:
+            date = e["date"].date()
+            exercise = e["exercise"]
+            reps = e["reps"]
+
+            f.write(f"{date},{exercise},{reps}\n")
+
+    print("📊 CSV exported to reports/workouts.csv")
 
 def show_high_intensity():
     results = get_high_intensity_workouts()
@@ -272,6 +292,7 @@ stats       → Overall workout summary
 range       → Analyze workouts between two dates
 clear       → Delete all workout entries
 help        → Show this help menu
+csv         → Export workouts as CSV file
 """)
 
 
@@ -295,6 +316,7 @@ def menu():
         "15": show_monthly_reps,
         "16": show_stats,
         "17": clear_workouts,
+        "18": export_csv,
     }
 
     while True:
@@ -316,6 +338,7 @@ def menu():
         print("15) Show monthly reps")
         print("16) Show overall stats")
         print("17) Clear workout data")
+        print("18) Export workouts as CSV")
 
         choice = input("Choose: ").strip()
 
@@ -380,9 +403,10 @@ def run_cli_mode(command):
         show_help()
     elif command == "clear":
         clear_workouts()
+    elif command == "csv":
+        export_csv()
     else:
         print("Unknown command. Try: help")
-
 
 def main():
     if len(sys.argv) > 1:
