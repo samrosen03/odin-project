@@ -18,6 +18,16 @@ from workout_tools.service import (
 )
 
 
+def get_entries_or_warn():
+    entries = parse_entries()
+
+    if not entries:
+        print("No workout data available.")
+        return None
+
+    return entries
+
+
 def show_top_exercises(limit=3):
     results = get_top_exercises(limit)
 
@@ -31,6 +41,10 @@ def show_top_exercises(limit=3):
 
 
 def total_reps_by_exercise(entries):
+    if not entries:
+        print("No workout data available.")
+        return
+
     totals = defaultdict(int)
     for entry in entries:
         totals[entry["exercise"]] += entry["reps"]
@@ -41,6 +55,10 @@ def total_reps_by_exercise(entries):
 
 
 def reps_by_day(entries):
+    if not entries:
+        print("No workout data available.")
+        return
+
     daily = defaultdict(int)
     for entry in entries:
         day = entry["date"].date()
@@ -52,6 +70,10 @@ def reps_by_day(entries):
 
 
 def most_logged_exercise(entries):
+    if not entries:
+        print("No workout data available.")
+        return None
+
     counts = defaultdict(int)
     for entry in entries:
         counts[entry["exercise"]] += 1
@@ -139,11 +161,10 @@ def export_report():
 
     print("📄 Report saved to reports/workout_report.txt")
 
-def export_csv():
-    entries = parse_entries()
 
+def export_csv():
+    entries = get_entries_or_warn()
     if not entries:
-        print("No data to export.")
         return
 
     os.makedirs("reports", exist_ok=True)
@@ -155,10 +176,10 @@ def export_csv():
             date = e["date"].date()
             exercise = e["exercise"]
             reps = e["reps"]
-
             f.write(f"{date},{exercise},{reps}\n")
 
     print("📊 CSV exported to reports/workouts.csv")
+
 
 def show_high_intensity():
     results = get_high_intensity_workouts()
@@ -177,7 +198,9 @@ def show_high_intensity():
 
 
 def show_dashboard():
-    entries = parse_entries()
+    entries = get_entries_or_warn()
+    if not entries:
+        return
 
     total_reps = sum(e["reps"] for e in entries)
     consistency = get_consistency_score()
@@ -212,7 +235,9 @@ def show_monthly_reps():
 
 
 def show_stats():
-    entries = parse_entries()
+    entries = get_entries_or_warn()
+    if not entries:
+        return
 
     total_reps = sum(e["reps"] for e in entries)
     consistency = get_consistency_score()
@@ -238,7 +263,9 @@ def show_range_summary(start_str, end_str):
         print("Invalid date format. Use YYYY-MM-DD")
         return
 
-    entries = parse_entries()
+    entries = get_entries_or_warn()
+    if not entries:
+        return
 
     filtered = [
         e for e in entries
@@ -291,8 +318,8 @@ monthly     → Monthly rep totals
 stats       → Overall workout summary
 range       → Analyze workouts between two dates
 clear       → Delete all workout entries
-help        → Show this help menu
 csv         → Export workouts as CSV file
+help        → Show this help menu
 """)
 
 
@@ -407,6 +434,7 @@ def run_cli_mode(command):
         export_csv()
     else:
         print("Unknown command. Try: help")
+
 
 def main():
     if len(sys.argv) > 1:
