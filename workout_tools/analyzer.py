@@ -234,25 +234,38 @@ def show_monthly_reps():
         print(f"{month}: {total}")
 
 
-def show_stats():
+def show_stats(exercise=None):
     entries = get_entries_or_warn()
     if not entries:
         return
 
+    if exercise:
+        entries = [e for e in entries if e["exercise"].lower() == exercise.lower()]
+
+        if not entries:
+            print(f"No data found for '{exercise}'")
+            return
+
     total_reps = sum(e["reps"] for e in entries)
-    consistency = get_consistency_score()
-    streak = get_longest_streak()
-    top = get_top_exercises()
+    unique_days = {e["date"].date() for e in entries}
 
     print("\n📊 WORKOUT STATS\n")
-    print(f"Total Reps: {total_reps}")
-    print(f"Workout Days: {consistency}")
-    print(f"Longest Streak: {streak} days")
 
-    if top:
-        print("\nTop Exercises:")
-        for ex, reps in top:
-            print(f"{ex} → {reps}")
+    if exercise:
+        print(f"Exercise: {exercise}")
+
+    print(f"Total Reps: {total_reps}")
+    print(f"Workout Days: {len(unique_days)}")
+
+    if not exercise:
+        streak = get_longest_streak()
+        print(f"Longest Streak: {streak} days")
+
+        top = get_top_exercises()
+        if top:
+            print("\nTop Exercises:")
+            for ex, reps in top:
+                print(f"{ex} → {reps}")
 
 
 def show_range_summary(start_str, end_str):
@@ -291,7 +304,8 @@ def clear_workouts():
         print("Cancelled.")
         return
 
-    with open("data/workouts.txt", "w") as f:
+    workouts_path = os.path.join("data", "workouts.txt")
+    with open(workouts_path, "w") as f:
         f.write("")
 
     print("🧹 Workout data cleared.")
@@ -301,35 +315,33 @@ def show_help():
     print("""
 Workout Analyzer Commands
 
-total       → Total reps by exercise
-daily       → Reps grouped by day
-most        → Most logged exercise
-prs         → Personal records
-score       → Consistency score
-streak      → Longest workout streak
-search      → Search exercise history
-top         → Top exercises
-high        → High intensity workouts
-dashboard   → Quick summary
-invalid     → Show invalid entries
-average     → Average reps per exercise
-report      → Export workout report
-monthly     → Monthly rep totals
-stats       → Overall workout summary
-range       → Analyze workouts between two dates
-clear       → Delete all workout entries
-csv         → Export workouts as CSV file
-help        → Show this help menu
+total            → Total reps by exercise
+daily            → Reps grouped by day
+most             → Most logged exercise
+prs              → Personal records
+score            → Consistency score
+streak           → Longest workout streak
+search           → Search exercise history
+top [limit]      → Top exercises, optionally set limit
+high             → High intensity workouts
+dashboard        → Quick summary
+invalid          → Show invalid entries
+average          → Average reps per exercise
+report           → Export workout report
+monthly          → Monthly rep totals
+stats [exercise] → Overall workout summary, optionally filtered by exercise
+range            → Analyze workouts between two dates
+clear            → Delete all workout entries
+csv              → Export workouts as CSV file
+help             → Show this help menu
 """)
 
 
 def menu():
-    entries = parse_entries()
-
     actions = {
-        "1": lambda: total_reps_by_exercise(entries),
-        "2": lambda: reps_by_day(entries),
-        "3": lambda: most_logged_exercise(entries),
+        "1": lambda: total_reps_by_exercise(parse_entries()),
+        "2": lambda: reps_by_day(parse_entries()),
+        "3": lambda: most_logged_exercise(parse_entries()),
         "4": show_personal_records,
         "5": show_consistency_score,
         "6": show_longest_streak,
@@ -417,7 +429,8 @@ def run_cli_mode(command):
     elif command == "monthly":
         show_monthly_reps()
     elif command == "stats":
-        show_stats()
+        exercise = sys.argv[2] if len(sys.argv) > 2 else None
+        show_stats(exercise)
     elif command == "range":
         if len(sys.argv) < 4:
             print("Usage: range YYYY-MM-DD YYYY-MM-DD")
