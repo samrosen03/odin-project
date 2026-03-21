@@ -297,6 +297,38 @@ def show_range_summary(start_str, end_str):
     print(f"Workout Days: {len(unique_days)}")
 
 
+def show_top_exercise_in_range(start_str, end_str):
+    try:
+        start = datetime.strptime(start_str, "%Y-%m-%d")
+        end = datetime.strptime(end_str, "%Y-%m-%d")
+    except ValueError:
+        print("Invalid date format. Use YYYY-MM-DD")
+        return
+
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    filtered = [
+        e for e in entries
+        if start <= e["date"] <= end
+    ]
+
+    if not filtered:
+        print("No data in this range.")
+        return
+
+    totals = defaultdict(int)
+    for e in filtered:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+    top_reps = totals[top_ex]
+
+    print(f"\n🏆 Top Exercise from {start_str} → {end_str}\n")
+    print(f"{top_ex}: {top_reps} reps")
+
+
 def clear_workouts():
     confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
 
@@ -331,6 +363,7 @@ report           → Export workout report
 monthly          → Monthly rep totals
 stats [exercise] → Overall workout summary, optionally filtered by exercise
 range            → Analyze workouts between two dates
+range-top        → Top exercise in a date range
 clear            → Delete all workout entries
 csv              → Export workouts as CSV file
 help             → Show this help menu
@@ -439,6 +472,14 @@ def run_cli_mode(command):
         start = sys.argv[2]
         end = sys.argv[3]
         show_range_summary(start, end)
+    elif command == "range-top":
+        if len(sys.argv) < 4:
+            print("Usage: range-top YYYY-MM-DD YYYY-MM-DD")
+            return
+
+        start = sys.argv[2]
+        end = sys.argv[3]
+        show_top_exercise_in_range(start, end)
     elif command == "help":
         show_help()
     elif command == "clear":
