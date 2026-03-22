@@ -329,6 +329,23 @@ def show_top_exercise_in_range(start_str, end_str):
     print(f"{top_ex}: {top_reps} reps")
 
 
+def check_inactivity(days_threshold=2):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    last_date = max(e["date"] for e in entries)
+    today = datetime.now()
+
+    days_inactive = (today - last_date).days
+
+    if days_inactive >= days_threshold:
+        print(f"\n⚠️ You haven’t worked out in {days_inactive} days")
+        print("Time to get back on track.\n")
+    else:
+        print(f"\n✅ You’re on track! Last workout was {days_inactive} day(s) ago.\n")
+
+
 def clear_workouts():
     confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
 
@@ -364,6 +381,7 @@ monthly          → Monthly rep totals
 stats [exercise] → Overall workout summary, optionally filtered by exercise
 range            → Analyze workouts between two dates
 range-top        → Top exercise in a date range
+check [days]     → Check inactivity (default 2 days)
 clear            → Delete all workout entries
 csv              → Export workouts as CSV file
 help             → Show this help menu
@@ -389,6 +407,7 @@ def menu():
         "16": show_stats,
         "17": clear_workouts,
         "18": export_csv,
+        "19": check_inactivity,
     }
 
     while True:
@@ -411,6 +430,7 @@ def menu():
         print("16) Show overall stats")
         print("17) Clear workout data")
         print("18) Export workouts as CSV")
+        print("19) Check inactivity")
 
         choice = input("Choose: ").strip()
 
@@ -486,6 +506,16 @@ def run_cli_mode(command):
         clear_workouts()
     elif command == "csv":
         export_csv()
+    elif command == "check":
+        threshold = 2
+
+        if len(sys.argv) > 2:
+            try:
+                threshold = int(sys.argv[2])
+            except ValueError:
+                print("Invalid number. Using default of 2.")
+
+        check_inactivity(threshold)
     else:
         print("Unknown command. Try: help")
 
