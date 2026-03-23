@@ -345,6 +345,37 @@ def check_inactivity(days_threshold=2):
     else:
         print(f"\n✅ You’re on track! Last workout was {days_inactive} day(s) ago.\n")
 
+def show_workout_score():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    # consistency
+    unique_days = {e["date"].date() for e in entries}
+    consistency_score = min(len(unique_days), 30)  # max 30 pts
+
+    # total reps
+    total_reps = sum(e["reps"] for e in entries)
+    reps_score = min(total_reps // 500, 40)  # max 40 pts
+
+    # streak
+    streak = get_longest_streak()
+    streak_score = min(streak * 2, 30)  # max 30 pts
+
+    total_score = consistency_score + reps_score + streak_score
+
+    print("\n🔥 WORKOUT SCORE\n")
+    print(f"Score: {total_score}/100\n")
+    print(f"Consistency: {len(unique_days)} days → {consistency_score} pts")
+    print(f"Total Reps: {total_reps} → {reps_score} pts")
+    print(f"Streak: {streak} days → {streak_score} pts")
+
+    if total_score >= 80:
+        print("\n🚀 Elite consistency. Keep going.")
+    elif total_score >= 50:
+        print("\n💪 Solid work. Stay consistent.")
+    else:
+        print("\n⚠️ Let’s step it up.")
 
 def clear_workouts():
     confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
@@ -385,6 +416,7 @@ check [days]     → Check inactivity (default 2 days)
 clear            → Delete all workout entries
 csv              → Export workouts as CSV file
 help             → Show this help menu
+scorecard       → Show workout score (0–100)
 """)
 
 
@@ -408,6 +440,7 @@ def menu():
         "17": clear_workouts,
         "18": export_csv,
         "19": check_inactivity,
+        "20": show_workout_score,
     }
 
     while True:
@@ -431,6 +464,7 @@ def menu():
         print("17) Clear workout data")
         print("18) Export workouts as CSV")
         print("19) Check inactivity")
+        print("20) Show workout score")
 
         choice = input("Choose: ").strip()
 
@@ -516,6 +550,8 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
+    elif command == "scorecard":
+        show_workout_score()
     else:
         print("Unknown command. Try: help")
 
