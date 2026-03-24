@@ -1,7 +1,7 @@
 import sys
 import os
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from workout_tools.utils import parse_entries
 from workout_tools.service import (
@@ -345,22 +345,20 @@ def check_inactivity(days_threshold=2):
     else:
         print(f"\n✅ You’re on track! Last workout was {days_inactive} day(s) ago.\n")
 
+
 def show_workout_score():
     entries = get_entries_or_warn()
     if not entries:
         return
 
-    # consistency
     unique_days = {e["date"].date() for e in entries}
-    consistency_score = min(len(unique_days), 30)  # max 30 pts
+    consistency_score = min(len(unique_days), 30)
 
-    # total reps
     total_reps = sum(e["reps"] for e in entries)
-    reps_score = min(total_reps // 500, 40)  # max 40 pts
+    reps_score = min(total_reps // 500, 40)
 
-    # streak
     streak = get_longest_streak()
-    streak_score = min(streak * 2, 30)  # max 30 pts
+    streak_score = min(streak * 2, 30)
 
     total_score = consistency_score + reps_score + streak_score
 
@@ -376,6 +374,41 @@ def show_workout_score():
         print("\n💪 Solid work. Stay consistent.")
     else:
         print("\n⚠️ Let’s step it up.")
+
+
+def show_weekly_report():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    today = datetime.now()
+    week_ago = today - timedelta(days=7)
+
+    weekly = [e for e in entries if e["date"] >= week_ago]
+
+    if not weekly:
+        print("No workouts this week.")
+        return
+
+    total_reps = sum(e["reps"] for e in weekly)
+    days = {e["date"].date() for e in weekly}
+
+    totals = defaultdict(int)
+    for e in weekly:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+
+    print("\n📆 WEEKLY REPORT\n")
+    print(f"Workout Days: {len(days)}")
+    print(f"Total Reps: {total_reps}")
+    print(f"Top Exercise: {top_ex}")
+
+    if len(days) >= 4:
+        print("\n💪 Great consistency this week.")
+    else:
+        print("\n⚠️ Let’s aim for more consistency next week.")
+
 
 def clear_workouts():
     confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
@@ -413,10 +446,11 @@ stats [exercise] → Overall workout summary, optionally filtered by exercise
 range            → Analyze workouts between two dates
 range-top        → Top exercise in a date range
 check [days]     → Check inactivity (default 2 days)
+weekly           → Show weekly workout report
 clear            → Delete all workout entries
 csv              → Export workouts as CSV file
+scorecard        → Show workout score (0–100)
 help             → Show this help menu
-scorecard       → Show workout score (0–100)
 """)
 
 
@@ -441,6 +475,7 @@ def menu():
         "18": export_csv,
         "19": check_inactivity,
         "20": show_workout_score,
+        "21": show_weekly_report,
     }
 
     while True:
@@ -465,6 +500,7 @@ def menu():
         print("18) Export workouts as CSV")
         print("19) Check inactivity")
         print("20) Show workout score")
+        print("21) Show weekly report")
 
         choice = input("Choose: ").strip()
 
@@ -518,6 +554,8 @@ def run_cli_mode(command):
     elif command == "stats":
         exercise = sys.argv[2] if len(sys.argv) > 2 else None
         show_stats(exercise)
+    elif command == "weekly":
+        show_weekly_report()
     elif command == "range":
         if len(sys.argv) < 4:
             print("Usage: range YYYY-MM-DD YYYY-MM-DD")
