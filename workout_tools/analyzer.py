@@ -410,6 +410,63 @@ def show_weekly_report():
         print("\n⚠️ Let’s aim for more consistency next week.")
 
 
+def generate_client_message():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    total_reps = sum(e["reps"] for e in entries)
+    days = {e["date"].date() for e in entries}
+    streak = get_longest_streak()
+
+    print("\n📩 CLIENT MESSAGE\n")
+
+    if len(days) >= 4:
+        print("You've been super consistent this week — keep it up. Proud of you.")
+    elif streak >= 3:
+        print("Nice streak going. Let’s keep that momentum rolling.")
+    else:
+        print("Let’s lock back in this week — small wins daily.")
+
+    print(f"(Total reps logged: {total_reps})")
+
+
+def streak_warning():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    last_date = max(e["date"] for e in entries)
+    today = datetime.now()
+
+    days_off = (today - last_date).days
+
+    print("\n⚠️ STREAK CHECK\n")
+
+    if days_off >= 3:
+        print(f"You’ve missed {days_off} days. Time to get back in.")
+    else:
+        print("You’re staying consistent. Keep going.")
+
+
+def show_exercise_rankings():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    totals = defaultdict(int)
+
+    for e in entries:
+        totals[e["exercise"]] += e["reps"]
+
+    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+
+    print("\n🏆 EXERCISE RANKINGS\n")
+
+    for i, (ex, reps) in enumerate(ranked, start=1):
+        print(f"{i}. {ex} → {reps} reps")
+
+
 def clear_workouts():
     confirm = input("⚠️ This will delete all workout entries. Type 'yes' to confirm: ")
 
@@ -447,6 +504,9 @@ range            → Analyze workouts between two dates
 range-top        → Top exercise in a date range
 check [days]     → Check inactivity (default 2 days)
 weekly           → Show weekly workout report
+message          → Generate a client check-in message
+warn             → Show streak warning
+rank             → Show exercise rankings
 clear            → Delete all workout entries
 csv              → Export workouts as CSV file
 scorecard        → Show workout score (0–100)
@@ -476,6 +536,9 @@ def menu():
         "19": check_inactivity,
         "20": show_workout_score,
         "21": show_weekly_report,
+        "22": generate_client_message,
+        "23": streak_warning,
+        "24": show_exercise_rankings,
     }
 
     while True:
@@ -501,6 +564,9 @@ def menu():
         print("19) Check inactivity")
         print("20) Show workout score")
         print("21) Show weekly report")
+        print("22) Generate client message")
+        print("23) Show streak warning")
+        print("24) Show exercise rankings")
 
         choice = input("Choose: ").strip()
 
@@ -590,6 +656,12 @@ def run_cli_mode(command):
         check_inactivity(threshold)
     elif command == "scorecard":
         show_workout_score()
+    elif command == "message":
+        generate_client_message()
+    elif command == "warn":
+        streak_warning()
+    elif command == "rank":
+        show_exercise_rankings()
     else:
         print("Unknown command. Try: help")
 
