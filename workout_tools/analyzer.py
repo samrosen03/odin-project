@@ -27,7 +27,6 @@ def get_entries_or_warn():
 
     return entries
 
-
 def show_top_exercises(limit=3):
     results = get_top_exercises(limit)
 
@@ -196,6 +195,26 @@ def show_high_intensity():
         reps = entry["reps"]
         print(f"{date} → {ex} ({reps} reps)")
 
+def save_last_command(command):
+    os.makedirs("data", exist_ok=True)
+    with open("data/last_command.txt", "w") as f:
+        f.write(command)
+
+
+def run_last_command():
+    try:
+        with open("data/last_command.txt", "r") as f:
+            last = f.read().strip()
+
+        if not last:
+            print("No previous command found.")
+            return
+
+        print(f"\n🔁 Re-running last command: {last}\n")
+        run_cli_mode(last)
+
+    except FileNotFoundError:
+        print("No previous command saved.")
 
 def show_dashboard():
     entries = get_entries_or_warn()
@@ -511,6 +530,7 @@ clear            → Delete all workout entries
 csv              → Export workouts as CSV file
 scorecard        → Show workout score (0–100)
 help             → Show this help menu
+repeat           → Repeat last command
 """)
 
 
@@ -539,6 +559,7 @@ def menu():
         "22": generate_client_message,
         "23": streak_warning,
         "24": show_exercise_rankings,
+        "25": run_last_command
     }
 
     while True:
@@ -567,6 +588,8 @@ def menu():
         print("22) Generate client message")
         print("23) Show streak warning")
         print("24) Show exercise rankings")
+        print("25) Repeat last command")
+
 
         choice = input("Choose: ").strip()
 
@@ -662,6 +685,8 @@ def run_cli_mode(command):
         streak_warning()
     elif command == "rank":
         show_exercise_rankings()
+    elif command == "repeat":
+        run_last_command()
     else:
         print("Unknown command. Try: help")
 
