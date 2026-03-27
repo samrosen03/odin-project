@@ -24,6 +24,7 @@ def parse_entries():
         try:
             parsed.append({
                 "date": datetime.strptime(entry["date"], "%Y-%m-%d"),
+                "client": entry.get("client", "Unknown"),  # 👈 NEW
                 "exercise": entry["exercise"],
                 "reps": int(entry["reps"])
             })
