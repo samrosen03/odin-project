@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -26,6 +27,7 @@ def get_entries_or_warn():
         return None
 
     return entries
+
 
 def show_top_exercises(limit=3):
     results = get_top_exercises(limit)
@@ -169,13 +171,14 @@ def export_csv():
     os.makedirs("reports", exist_ok=True)
 
     with open("reports/workouts.csv", "w") as f:
-        f.write("date,exercise,reps\n")
+        f.write("date,client,exercise,reps\n")
 
         for e in entries:
             date = e["date"].date()
+            client = e.get("client", "Unknown")
             exercise = e["exercise"]
             reps = e["reps"]
-            f.write(f"{date},{exercise},{reps}\n")
+            f.write(f"{date},{client},{exercise},{reps}\n")
 
     print("📊 CSV exported to reports/workouts.csv")
 
@@ -195,10 +198,11 @@ def show_high_intensity():
         reps = entry["reps"]
         print(f"{date} → {ex} ({reps} reps)")
 
-def save_last_command(command):
+
+def save_last_command(command_string):
     os.makedirs("data", exist_ok=True)
     with open("data/last_command.txt", "w") as f:
-        f.write(command)
+        f.write(command_string)
 
 
 def run_last_command():
@@ -211,10 +215,22 @@ def run_last_command():
             return
 
         print(f"\n🔁 Re-running last command: {last}\n")
-        run_cli_mode(last)
+
+        parts = last.split()
+        if not parts:
+            print("No previous command found.")
+            return
+
+        old_argv = sys.argv[:]
+        try:
+            sys.argv = [sys.argv[0]] + parts
+            run_cli_mode(parts[0])
+        finally:
+            sys.argv = old_argv
 
     except FileNotFoundError:
         print("No previous command saved.")
+
 
 def show_dashboard():
     entries = get_entries_or_warn()
@@ -314,6 +330,18 @@ def show_range_summary(start_str, end_str):
     print(f"\n📅 Workouts from {start_str} → {end_str}\n")
     print(f"Total Reps: {total_reps}")
     print(f"Workout Days: {len(unique_days)}")
+
+
+def list_clients():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    clients = sorted({e["client"] for e in entries})
+
+    print("\n👥 CLIENTS\n")
+    for c in clients:
+        print(f"- {c}")
 
 
 def show_top_exercise_in_range(start_str, end_str):
@@ -493,9 +521,9 @@ def clear_workouts():
         print("Cancelled.")
         return
 
-    workouts_path = os.path.join("data", "workouts.txt")
-    with open(workouts_path, "w") as f:
-        f.write("")
+    log_path = os.path.join("data", "workout_log.json")
+    with open(log_path, "w") as f:
+        json.dump([], f, indent=2)
 
     print("🧹 Workout data cleared.")
 
@@ -526,11 +554,12 @@ weekly           → Show weekly workout report
 message          → Generate a client check-in message
 warn             → Show streak warning
 rank             → Show exercise rankings
+clients          → List all clients
 clear            → Delete all workout entries
 csv              → Export workouts as CSV file
 scorecard        → Show workout score (0–100)
-help             → Show this help menu
 repeat           → Repeat last command
+help             → Show this help menu
 """)
 
 
@@ -559,7 +588,8 @@ def menu():
         "22": generate_client_message,
         "23": streak_warning,
         "24": show_exercise_rankings,
-        "25": run_last_command
+        "25": run_last_command,
+        "26": list_clients,
     }
 
     while True:
@@ -589,7 +619,7 @@ def menu():
         print("23) Show streak warning")
         print("24) Show exercise rankings")
         print("25) Repeat last command")
-
+        print("26) List clients")
 
         choice = input("Choose: ").strip()
 
@@ -602,12 +632,17 @@ def menu():
 
 
 def run_cli_mode(command):
+    if command != "repeat":
+        save_last_command(" ".join(sys.argv[1:]))
+
     entries = parse_entries()
 
     if command == "total":
         total_reps_by_exercise(entries)
     elif command == "daily":
         reps_by_day(entries)
+    elif command == "clients":
+        list_clients()
     elif command == "most":
         most_logged_exercise(entries)
     elif command == "prs":
