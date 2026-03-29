@@ -269,16 +269,21 @@ def show_monthly_reps():
         print(f"{month}: {total}")
 
 
-def show_stats(exercise=None):
+def show_stats(exercise=None, client=None):
     entries = get_entries_or_warn()
     if not entries:
         return
 
+    if client:
+        entries = [e for e in entries if e.get("client", "").lower() == client.lower()]
+        if not entries:
+            print(f"No data found for client '{client}'")
+            return
+
     if exercise:
         entries = [e for e in entries if e["exercise"].lower() == exercise.lower()]
-
         if not entries:
-            print(f"No data found for '{exercise}'")
+            print(f"No data found for exercise '{exercise}'")
             return
 
     total_reps = sum(e["reps"] for e in entries)
@@ -286,13 +291,16 @@ def show_stats(exercise=None):
 
     print("\n📊 WORKOUT STATS\n")
 
+    if client:
+        print(f"Client: {client}")
+
     if exercise:
         print(f"Exercise: {exercise}")
 
     print(f"Total Reps: {total_reps}")
     print(f"Workout Days: {len(unique_days)}")
 
-    if not exercise:
+    if not exercise and not client:
         streak = get_longest_streak()
         print(f"Longest Streak: {streak} days")
 
@@ -532,34 +540,34 @@ def show_help():
     print("""
 Workout Analyzer Commands
 
-total            → Total reps by exercise
-daily            → Reps grouped by day
-most             → Most logged exercise
-prs              → Personal records
-score            → Consistency score
-streak           → Longest workout streak
-search           → Search exercise history
-top [limit]      → Top exercises, optionally set limit
-high             → High intensity workouts
-dashboard        → Quick summary
-invalid          → Show invalid entries
-average          → Average reps per exercise
-report           → Export workout report
-monthly          → Monthly rep totals
-stats [exercise] → Overall workout summary, optionally filtered by exercise
-range            → Analyze workouts between two dates
-range-top        → Top exercise in a date range
-check [days]     → Check inactivity (default 2 days)
-weekly           → Show weekly workout report
-message          → Generate a client check-in message
-warn             → Show streak warning
-rank             → Show exercise rankings
-clients          → List all clients
-clear            → Delete all workout entries
-csv              → Export workouts as CSV file
-scorecard        → Show workout score (0–100)
-repeat           → Repeat last command
-help             → Show this help menu
+total                  → Total reps by exercise
+daily                  → Reps grouped by day
+most                   → Most logged exercise
+prs                    → Personal records
+score                  → Consistency score
+streak                 → Longest workout streak
+search                 → Search exercise history
+top [limit]            → Top exercises, optionally set limit
+high                   → High intensity workouts
+dashboard              → Quick summary
+invalid                → Show invalid entries
+average                → Average reps per exercise
+report                 → Export workout report
+monthly                → Monthly rep totals
+stats [exercise] [client] → Overall workout summary, optionally filtered
+range                  → Analyze workouts between two dates
+range-top              → Top exercise in a date range
+check [days]           → Check inactivity (default 2 days)
+weekly                 → Show weekly workout report
+message                → Generate a client check-in message
+warn                   → Show streak warning
+rank                   → Show exercise rankings
+clients                → List all clients
+clear                  → Delete all workout entries
+csv                    → Export workouts as CSV file
+scorecard              → Show workout score (0–100)
+repeat                 → Repeat last command
+help                   → Show this help menu
 """)
 
 
@@ -676,8 +684,16 @@ def run_cli_mode(command):
     elif command == "monthly":
         show_monthly_reps()
     elif command == "stats":
-        exercise = sys.argv[2] if len(sys.argv) > 2 else None
-        show_stats(exercise)
+        exercise = None
+        client = None
+
+        if len(sys.argv) > 2:
+            exercise = sys.argv[2]
+
+        if len(sys.argv) > 3:
+            client = sys.argv[3]
+
+        show_stats(exercise, client)
     elif command == "weekly":
         show_weekly_report()
     elif command == "range":
