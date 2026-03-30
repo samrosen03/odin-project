@@ -351,6 +351,23 @@ def list_clients():
     for c in clients:
         print(f"- {c}")
 
+def show_leaderboard():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    totals = defaultdict(int)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+
+    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+
+    print("\n🏆 CLIENT LEADERBOARD\n")
+
+    for i, (client, reps) in enumerate(ranked, start=1):
+        print(f"{i}. {client} → {reps} reps")
 
 def show_top_exercise_in_range(start_str, end_str):
     try:
@@ -568,6 +585,7 @@ csv                    → Export workouts as CSV file
 scorecard              → Show workout score (0–100)
 repeat                 → Repeat last command
 help                   → Show this help menu
+leaderboard            → Rank clients by total reps
 """)
 
 
@@ -598,6 +616,7 @@ def menu():
         "24": show_exercise_rankings,
         "25": run_last_command,
         "26": list_clients,
+        "27": show_leaderboard
     }
 
     while True:
@@ -628,6 +647,7 @@ def menu():
         print("24) Show exercise rankings")
         print("25) Repeat last command")
         print("26) List clients")
+        print("27) Show leaderboard")
 
         choice = input("Choose: ").strip()
 
@@ -728,6 +748,8 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
+    elif command == "leaderboard":
+        show_leaderboard()
     elif command == "scorecard":
         show_workout_score()
     elif command == "message":
