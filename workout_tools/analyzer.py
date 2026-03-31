@@ -351,6 +351,7 @@ def list_clients():
     for c in clients:
         print(f"- {c}")
 
+
 def show_leaderboard():
     entries = get_entries_or_warn()
     if not entries:
@@ -368,6 +369,7 @@ def show_leaderboard():
 
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
+
 
 def show_top_exercise_in_range(start_str, end_str):
     try:
@@ -557,35 +559,35 @@ def show_help():
     print("""
 Workout Analyzer Commands
 
-total                  → Total reps by exercise
-daily                  → Reps grouped by day
-most                   → Most logged exercise
-prs                    → Personal records
-score                  → Consistency score
-streak                 → Longest workout streak
-search                 → Search exercise history
-top [limit]            → Top exercises, optionally set limit
-high                   → High intensity workouts
-dashboard              → Quick summary
-invalid                → Show invalid entries
-average                → Average reps per exercise
-report                 → Export workout report
-monthly                → Monthly rep totals
+total                     → Total reps by exercise
+daily                     → Reps grouped by day
+most                      → Most logged exercise
+prs                       → Personal records
+score                     → Consistency score
+streak                    → Longest workout streak
+search                    → Search exercise history
+top [limit]               → Top exercises, optionally set limit
+high                      → High intensity workouts
+dashboard                 → Quick summary
+invalid                   → Show invalid entries
+average                   → Average reps per exercise
+report                    → Export workout report
+monthly                   → Monthly rep totals
 stats [exercise] [client] → Overall workout summary, optionally filtered
-range                  → Analyze workouts between two dates
-range-top              → Top exercise in a date range
-check [days]           → Check inactivity (default 2 days)
-weekly                 → Show weekly workout report
-message                → Generate a client check-in message
-warn                   → Show streak warning
-rank                   → Show exercise rankings
-clients                → List all clients
-clear                  → Delete all workout entries
-csv                    → Export workouts as CSV file
-scorecard              → Show workout score (0–100)
-repeat                 → Repeat last command
-help                   → Show this help menu
-leaderboard            → Rank clients by total reps
+range                     → Analyze workouts between two dates
+range-top                 → Top exercise in a date range
+check [days]              → Check inactivity (default 2 days)
+weekly                    → Show weekly workout report
+message                   → Generate a client check-in message
+warn                      → Show streak warning
+rank                      → Show exercise rankings
+clients                   → List all clients
+leaderboard               → Rank clients by total reps
+clear                     → Delete all workout entries
+csv                       → Export workouts as CSV file
+scorecard                 → Show workout score (0–100)
+repeat                    → Repeat last command
+help                      → Show this help menu
 """)
 
 
@@ -616,7 +618,7 @@ def menu():
         "24": show_exercise_rankings,
         "25": run_last_command,
         "26": list_clients,
-        "27": show_leaderboard
+        "27": show_leaderboard,
     }
 
     while True:
@@ -671,6 +673,8 @@ def run_cli_mode(command):
         reps_by_day(entries)
     elif command == "clients":
         list_clients()
+    elif command == "leaderboard":
+        show_leaderboard()
     elif command == "most":
         most_logged_exercise(entries)
     elif command == "prs":
@@ -748,8 +752,6 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
-    elif command == "leaderboard":
-        show_leaderboard()
     elif command == "scorecard":
         show_workout_score()
     elif command == "message":
