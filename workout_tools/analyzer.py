@@ -55,6 +55,31 @@ def total_reps_by_exercise(entries):
         print(f"{name}: {total}")
 
 
+def check_client_inactivity(client_name, days_threshold=2):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data for {client_name}")
+        return
+
+    last_date = max(e["date"] for e in client_entries)
+    today = datetime.now()
+
+    days_off = (today - last_date).days
+
+    if days_off >= days_threshold:
+        print(f"\n⚠️ {client_name} hasn’t trained in {days_off} days")
+    else:
+        print(f"\n✅ {client_name} is on track ({days_off} day gap)")
+
+
 def reps_by_day(entries):
     if not entries:
         print("No workout data available.")
@@ -577,6 +602,7 @@ stats [exercise] [client] → Overall workout summary, optionally filtered
 range                     → Analyze workouts between two dates
 range-top                 → Top exercise in a date range
 check [days]              → Check inactivity (default 2 days)
+inactive CLIENT_NAME      → Check inactivity for a client
 weekly                    → Show weekly workout report
 message                   → Generate a client check-in message
 warn                      → Show streak warning
@@ -619,6 +645,7 @@ def menu():
         "25": run_last_command,
         "26": list_clients,
         "27": show_leaderboard,
+        "28": lambda: print("Use CLI: inactive CLIENT_NAME"),
     }
 
     while True:
@@ -650,6 +677,7 @@ def menu():
         print("25) Repeat last command")
         print("26) List clients")
         print("27) Show leaderboard")
+        print("28) Client inactivity check (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -687,14 +715,17 @@ def run_cli_mode(command):
         search_exercise_history()
     elif command == "top":
         limit = 3
-
         if len(sys.argv) > 2:
             try:
                 limit = int(sys.argv[2])
             except ValueError:
                 print("Invalid number. Using default of 3.")
-
         show_top_exercises(limit)
+    elif command == "inactive":
+        if len(sys.argv) < 3:
+            print("Usage: inactive CLIENT_NAME")
+            return
+        check_client_inactivity(sys.argv[2])
     elif command == "high":
         show_high_intensity()
     elif command == "dashboard":
