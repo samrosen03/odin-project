@@ -28,6 +28,35 @@ def get_entries_or_warn():
 
     return entries
 
+def show_top_client_this_week():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    today = datetime.now()
+    week_ago = today - timedelta(days=7)
+
+    weekly_entries = [
+        e for e in entries
+        if e["date"] >= week_ago
+    ]
+
+    if not weekly_entries:
+        print("No workouts this week.")
+        return
+
+    totals = defaultdict(int)
+
+    for e in weekly_entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+
+    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+
+    print("\n🏆 TOP CLIENT THIS WEEK\n")
+
+    for i, (client, reps) in enumerate(ranked, start=1):
+        print(f"{i}. {client} → {reps} reps")
 
 def show_top_exercises(limit=3):
     results = get_top_exercises(limit)
@@ -614,6 +643,7 @@ csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
+top-client-week          → Top clients ranked by reps this week
 """)
 
 
@@ -646,6 +676,7 @@ def menu():
         "26": list_clients,
         "27": show_leaderboard,
         "28": lambda: print("Use CLI: inactive CLIENT_NAME"),
+        "29": show_top_client_this_week,
     }
 
     while True:
@@ -678,6 +709,7 @@ def menu():
         print("26) List clients")
         print("27) Show leaderboard")
         print("28) Client inactivity check (CLI only)")
+        print("29) Show top client this week")
 
         choice = input("Choose: ").strip()
 
@@ -699,6 +731,8 @@ def run_cli_mode(command):
         total_reps_by_exercise(entries)
     elif command == "daily":
         reps_by_day(entries)
+    elif command == "top-client-week":
+        show_top_client_this_week()
     elif command == "clients":
         list_clients()
     elif command == "leaderboard":
