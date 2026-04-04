@@ -28,6 +28,7 @@ def get_entries_or_warn():
 
     return entries
 
+
 def show_top_client_this_week():
     entries = get_entries_or_warn()
     if not entries:
@@ -58,6 +59,7 @@ def show_top_client_this_week():
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
+
 def show_top_exercises(limit=3):
     results = get_top_exercises(limit)
 
@@ -68,6 +70,7 @@ def show_top_exercises(limit=3):
     print(f"\n🏆 Top {limit} Exercises\n")
     for name, reps in results:
         print(f"{name} → {reps} reps")
+
 
 def generate_client_specific_message(client_name):
     entries = get_entries_or_warn()
@@ -83,7 +86,6 @@ def generate_client_specific_message(client_name):
         print(f"No data for {client_name}")
         return
 
-    # Weekly filter
     today = datetime.now()
     week_ago = today - timedelta(days=7)
 
@@ -91,18 +93,65 @@ def generate_client_specific_message(client_name):
 
     total_reps = sum(e["reps"] for e in client_entries)
     weekly_days = {e["date"].date() for e in weekly}
-    streak = get_longest_streak()
 
     print(f"\n📩 MESSAGE FOR {client_name}\n")
 
     if len(weekly_days) >= 4:
-        msg = f"{client_name} — you’ve logged {len(weekly_days)} sessions this week and {total_reps} total reps.\n\nYou're building real momentum right now. Let’s keep stacking wins 💪"
+        msg = (
+            f"{client_name} — you’ve logged {len(weekly_days)} sessions this week "
+            f"and {total_reps} total reps.\n\n"
+            "You're building real momentum right now. Let’s keep stacking wins 💪"
+        )
     elif len(weekly_days) >= 2:
-        msg = f"{client_name} — solid work getting sessions in this week.\n\nLet’s push for 1–2 more and keep the momentum going."
+        msg = (
+            f"{client_name} — solid work getting sessions in this week.\n\n"
+            "Let’s push for 1–2 more and keep the momentum going."
+        )
     else:
-        msg = f"{client_name} — let’s get back on track this week.\n\nEven one session gets the momentum going again."
+        msg = (
+            f"{client_name} — let’s get back on track this week.\n\n"
+            "Even one session gets the momentum going again."
+        )
 
     print(msg)
+
+
+def generate_client_report(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    total_reps = sum(e["reps"] for e in client_entries)
+    days = {e["date"].date() for e in client_entries}
+
+    totals = defaultdict(int)
+    for e in client_entries:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+
+    print(f"\n📊 CLIENT REPORT — {client_name}\n")
+    print(f"Workout Days: {len(days)}")
+    print(f"Total Reps: {total_reps}")
+    print(f"Top Exercise: {top_ex}")
+
+    print("\n💬 Message:")
+    if len(days) >= 4:
+        print("Great consistency this week. Let’s keep building momentum.")
+    elif len(days) >= 2:
+        print("Solid work. Let’s aim for one more session this week.")
+    else:
+        print("Let’s get back on track—small wins this week.")
+
 
 def total_reps_by_exercise(entries):
     if not entries:
@@ -660,6 +709,7 @@ dashboard                 → Quick summary
 invalid                   → Show invalid entries
 average                   → Average reps per exercise
 report                    → Export workout report
+report-client NAME        → Generate report for a specific client
 monthly                   → Monthly rep totals
 stats [exercise] [client] → Overall workout summary, optionally filtered
 range                     → Analyze workouts between two dates
@@ -668,17 +718,17 @@ check [days]              → Check inactivity (default 2 days)
 inactive CLIENT_NAME      → Check inactivity for a client
 weekly                    → Show weekly workout report
 message                   → Generate a client check-in message
+message-client NAME       → Generate a check-in message for a specific client
 warn                      → Show streak warning
 rank                      → Show exercise rankings
 clients                   → List all clients
 leaderboard               → Rank clients by total reps
+top-client-week           → Top clients ranked by reps this week
 clear                     → Delete all workout entries
 csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
-top-client-week          → Top clients ranked by reps this week
-message-client CLIENT_NAME → Generate a check-in message for a specific client
 """)
 
 
@@ -712,7 +762,8 @@ def menu():
         "27": show_leaderboard,
         "28": lambda: print("Use CLI: inactive CLIENT_NAME"),
         "29": show_top_client_this_week,
-        "30": lambda: print("Use CLI: message-client CLIENT_NAME")
+        "30": lambda: print("Use CLI: message-client CLIENT_NAME"),
+        "31": lambda: print("Use CLI: report-client CLIENT_NAME"),
     }
 
     while True:
@@ -747,6 +798,7 @@ def menu():
         print("28) Client inactivity check (CLI only)")
         print("29) Show top client this week")
         print("30) Generate client message (CLI only)")
+        print("31) Generate client report (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -801,8 +853,12 @@ def run_cli_mode(command):
         if len(sys.argv) < 3:
             print("Usage: message-client CLIENT_NAME")
             return
-
         generate_client_specific_message(sys.argv[2])
+    elif command == "report-client":
+        if len(sys.argv) < 3:
+            print("Usage: report-client CLIENT_NAME")
+            return
+        generate_client_report(sys.argv[2])
     elif command == "high":
         show_high_intensity()
     elif command == "dashboard":
