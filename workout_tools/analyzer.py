@@ -37,10 +37,7 @@ def show_top_client_this_week():
     today = datetime.now()
     week_ago = today - timedelta(days=7)
 
-    weekly_entries = [
-        e for e in entries
-        if e["date"] >= week_ago
-    ]
+    weekly_entries = [e for e in entries if e["date"] >= week_ago]
 
     if not weekly_entries:
         print("No workouts this week.")
@@ -55,7 +52,6 @@ def show_top_client_this_week():
     ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
 
     print("\n🏆 TOP CLIENT THIS WEEK\n")
-
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
@@ -70,6 +66,37 @@ def show_top_exercises(limit=3):
     print(f"\n🏆 Top {limit} Exercises\n")
     for name, reps in results:
         print(f"{name} → {reps} reps")
+
+
+def show_at_risk_clients(days_threshold=3):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    latest_by_client = {}
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        date = e["date"]
+
+        if client not in latest_by_client or date > latest_by_client[client]:
+            latest_by_client[client] = date
+
+    today = datetime.now()
+    at_risk = []
+
+    for client, last_date in latest_by_client.items():
+        days_off = (today - last_date).days
+        if days_off >= days_threshold:
+            at_risk.append((client, days_off))
+
+    if not at_risk:
+        print("\n✅ No at-risk clients right now.\n")
+        return
+
+    print("\n⚠️ AT-RISK CLIENTS\n")
+    for client, days in sorted(at_risk, key=lambda x: x[1], reverse=True):
+        print(f"{client} → {days} days inactive")
 
 
 def generate_client_specific_message(client_name):
@@ -269,7 +296,6 @@ def show_invalid_entries():
         return
 
     print("\n⚠️ Invalid Entries\n")
-
     for entry, reason in problems:
         date = entry["date"].date()
         ex = entry["exercise"]
@@ -328,7 +354,6 @@ def show_high_intensity():
         return
 
     print("\n🔥 High Intensity Workouts\n")
-
     for entry in results:
         date = entry["date"].date()
         ex = entry["exercise"]
@@ -460,10 +485,7 @@ def show_range_summary(start_str, end_str):
     if not entries:
         return
 
-    filtered = [
-        e for e in entries
-        if start <= e["date"] <= end
-    ]
+    filtered = [e for e in entries if start <= e["date"] <= end]
 
     if not filtered:
         print("No data in this range.")
@@ -495,7 +517,6 @@ def show_leaderboard():
         return
 
     totals = defaultdict(int)
-
     for e in entries:
         client = e.get("client", "Unknown")
         totals[client] += e["reps"]
@@ -503,7 +524,6 @@ def show_leaderboard():
     ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
 
     print("\n🏆 CLIENT LEADERBOARD\n")
-
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
@@ -520,10 +540,7 @@ def show_top_exercise_in_range(start_str, end_str):
     if not entries:
         return
 
-    filtered = [
-        e for e in entries
-        if start <= e["date"] <= end
-    ]
+    filtered = [e for e in entries if start <= e["date"] <= end]
 
     if not filtered:
         print("No data in this range.")
@@ -666,14 +683,12 @@ def show_exercise_rankings():
         return
 
     totals = defaultdict(int)
-
     for e in entries:
         totals[e["exercise"]] += e["reps"]
 
     ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
 
     print("\n🏆 EXERCISE RANKINGS\n")
-
     for i, (ex, reps) in enumerate(ranked, start=1):
         print(f"{i}. {ex} → {reps} reps")
 
@@ -716,6 +731,7 @@ range                     → Analyze workouts between two dates
 range-top                 → Top exercise in a date range
 check [days]              → Check inactivity (default 2 days)
 inactive CLIENT_NAME      → Check inactivity for a client
+at-risk                   → Show clients inactive for 3+ days
 weekly                    → Show weekly workout report
 message                   → Generate a client check-in message
 message-client NAME       → Generate a check-in message for a specific client
@@ -764,6 +780,7 @@ def menu():
         "29": show_top_client_this_week,
         "30": lambda: print("Use CLI: message-client CLIENT_NAME"),
         "31": lambda: print("Use CLI: report-client CLIENT_NAME"),
+        "32": show_at_risk_clients,
     }
 
     while True:
@@ -799,6 +816,7 @@ def menu():
         print("29) Show top client this week")
         print("30) Generate client message (CLI only)")
         print("31) Generate client report (CLI only)")
+        print("32) Show at-risk clients")
 
         choice = input("Choose: ").strip()
 
@@ -859,6 +877,8 @@ def run_cli_mode(command):
             print("Usage: report-client CLIENT_NAME")
             return
         generate_client_report(sys.argv[2])
+    elif command == "at-risk":
+        show_at_risk_clients()
     elif command == "high":
         show_high_intensity()
     elif command == "dashboard":
