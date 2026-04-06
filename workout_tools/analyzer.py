@@ -19,6 +19,18 @@ from workout_tools.service import (
 )
 
 
+def save_last_command(command_string):
+    os.makedirs("data", exist_ok=True)
+    with open("data/last_command.txt", "w") as f:
+        f.write(command_string)
+
+
+def ensure_datetime(entry):
+    if isinstance(entry["date"], str):
+        entry["date"] = datetime.fromisoformat(entry["date"])
+    return entry
+
+
 def get_entries_or_warn():
     entries = parse_entries()
 
@@ -26,158 +38,7 @@ def get_entries_or_warn():
         print("No workout data available.")
         return None
 
-    return entries
-
-
-def show_top_client_this_week():
-    entries = get_entries_or_warn()
-    if not entries:
-        return
-
-    today = datetime.now()
-    week_ago = today - timedelta(days=7)
-
-    weekly_entries = [e for e in entries if e["date"] >= week_ago]
-
-    if not weekly_entries:
-        print("No workouts this week.")
-        return
-
-    totals = defaultdict(int)
-
-    for e in weekly_entries:
-        client = e.get("client", "Unknown")
-        totals[client] += e["reps"]
-
-    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
-
-    print("\n🏆 TOP CLIENT THIS WEEK\n")
-    for i, (client, reps) in enumerate(ranked, start=1):
-        print(f"{i}. {client} → {reps} reps")
-
-
-def show_top_exercises(limit=3):
-    results = get_top_exercises(limit)
-
-    if not results:
-        print("No data available.")
-        return
-
-    print(f"\n🏆 Top {limit} Exercises\n")
-    for name, reps in results:
-        print(f"{name} → {reps} reps")
-
-
-def show_at_risk_clients(days_threshold=3):
-    entries = get_entries_or_warn()
-    if not entries:
-        return
-
-    latest_by_client = {}
-
-    for e in entries:
-        client = e.get("client", "Unknown")
-        date = e["date"]
-
-        if client not in latest_by_client or date > latest_by_client[client]:
-            latest_by_client[client] = date
-
-    today = datetime.now()
-    at_risk = []
-
-    for client, last_date in latest_by_client.items():
-        days_off = (today - last_date).days
-        if days_off >= days_threshold:
-            at_risk.append((client, days_off))
-
-    if not at_risk:
-        print("\n✅ No at-risk clients right now.\n")
-        return
-
-    print("\n⚠️ AT-RISK CLIENTS\n")
-    for client, days in sorted(at_risk, key=lambda x: x[1], reverse=True):
-        print(f"{client} → {days} days inactive")
-
-
-def generate_client_specific_message(client_name):
-    entries = get_entries_or_warn()
-    if not entries:
-        return
-
-    client_entries = [
-        e for e in entries
-        if e.get("client", "").lower() == client_name.lower()
-    ]
-
-    if not client_entries:
-        print(f"No data for {client_name}")
-        return
-
-    today = datetime.now()
-    week_ago = today - timedelta(days=7)
-
-    weekly = [e for e in client_entries if e["date"] >= week_ago]
-
-    total_reps = sum(e["reps"] for e in client_entries)
-    weekly_days = {e["date"].date() for e in weekly}
-
-    print(f"\n📩 MESSAGE FOR {client_name}\n")
-
-    if len(weekly_days) >= 4:
-        msg = (
-            f"{client_name} — you’ve logged {len(weekly_days)} sessions this week "
-            f"and {total_reps} total reps.\n\n"
-            "You're building real momentum right now. Let’s keep stacking wins 💪"
-        )
-    elif len(weekly_days) >= 2:
-        msg = (
-            f"{client_name} — solid work getting sessions in this week.\n\n"
-            "Let’s push for 1–2 more and keep the momentum going."
-        )
-    else:
-        msg = (
-            f"{client_name} — let’s get back on track this week.\n\n"
-            "Even one session gets the momentum going again."
-        )
-
-    print(msg)
-
-
-def generate_client_report(client_name):
-    entries = get_entries_or_warn()
-    if not entries:
-        return
-
-    client_entries = [
-        e for e in entries
-        if e.get("client", "").lower() == client_name.lower()
-    ]
-
-    if not client_entries:
-        print(f"No data found for {client_name}")
-        return
-
-    total_reps = sum(e["reps"] for e in client_entries)
-    days = {e["date"].date() for e in client_entries}
-
-    totals = defaultdict(int)
-    for e in client_entries:
-        totals[e["exercise"]] += e["reps"]
-
-    top_ex = max(totals, key=totals.get)
-
-    print(f"\n📊 CLIENT REPORT — {client_name}\n")
-    print(f"Workout Days: {len(days)}")
-    print(f"Total Reps: {total_reps}")
-    print(f"Top Exercise: {top_ex}")
-
-    print("\n💬 Message:")
-    if len(days) >= 4:
-        print("Great consistency this week. Let’s keep building momentum.")
-    elif len(days) >= 2:
-        print("Solid work. Let’s aim for one more session this week.")
-    else:
-        print("Let’s get back on track—small wins this week.")
+    return [ensure_datetime(e) for e in entries]
 
 
 def total_reps_by_exercise(entries):
@@ -192,31 +53,6 @@ def total_reps_by_exercise(entries):
     print("\n📊 Total Reps By Exercise:")
     for name, total in totals.items():
         print(f"{name}: {total}")
-
-
-def check_client_inactivity(client_name, days_threshold=2):
-    entries = get_entries_or_warn()
-    if not entries:
-        return
-
-    client_entries = [
-        e for e in entries
-        if e.get("client", "").lower() == client_name.lower()
-    ]
-
-    if not client_entries:
-        print(f"No data for {client_name}")
-        return
-
-    last_date = max(e["date"] for e in client_entries)
-    today = datetime.now()
-
-    days_off = (today - last_date).days
-
-    if days_off >= days_threshold:
-        print(f"\n⚠️ {client_name} hasn’t trained in {days_off} days")
-    else:
-        print(f"\n✅ {client_name} is on track ({days_off} day gap)")
 
 
 def reps_by_day(entries):
@@ -288,6 +124,33 @@ def search_exercise_history():
         print(f"{date} → {reps} reps")
 
 
+def show_top_exercises(limit=3):
+    results = get_top_exercises(limit)
+
+    if not results:
+        print("No data available.")
+        return
+
+    print(f"\n🏆 Top {limit} Exercises\n")
+    for name, reps in results:
+        print(f"{name} → {reps} reps")
+
+
+def show_high_intensity():
+    results = get_high_intensity_workouts()
+
+    if not results:
+        print("No high intensity workouts found.")
+        return
+
+    print("\n🔥 High Intensity Workouts\n")
+    for entry in results:
+        date = entry["date"].date()
+        ex = entry["exercise"]
+        reps = entry["reps"]
+        print(f"{date} → {ex} ({reps} reps)")
+
+
 def show_invalid_entries():
     problems = get_invalid_entries()
 
@@ -319,7 +182,6 @@ def export_report():
     report = generate_report()
 
     os.makedirs("reports", exist_ok=True)
-
     with open("reports/workout_report.txt", "w") as f:
         f.write(report)
 
@@ -332,7 +194,6 @@ def export_csv():
         return
 
     os.makedirs("reports", exist_ok=True)
-
     with open("reports/workouts.csv", "w") as f:
         f.write("date,client,exercise,reps\n")
 
@@ -344,27 +205,6 @@ def export_csv():
             f.write(f"{date},{client},{exercise},{reps}\n")
 
     print("📊 CSV exported to reports/workouts.csv")
-
-
-def show_high_intensity():
-    results = get_high_intensity_workouts()
-
-    if not results:
-        print("No high intensity workouts found.")
-        return
-
-    print("\n🔥 High Intensity Workouts\n")
-    for entry in results:
-        date = entry["date"].date()
-        ex = entry["exercise"]
-        reps = entry["reps"]
-        print(f"{date} → {ex} ({reps} reps)")
-
-
-def save_last_command(command_string):
-    os.makedirs("data", exist_ok=True)
-    with open("data/last_command.txt", "w") as f:
-        f.write(command_string)
 
 
 def run_last_command():
@@ -499,6 +339,35 @@ def show_range_summary(start_str, end_str):
     print(f"Workout Days: {len(unique_days)}")
 
 
+def show_top_exercise_in_range(start_str, end_str):
+    try:
+        start = datetime.strptime(start_str, "%Y-%m-%d")
+        end = datetime.strptime(end_str, "%Y-%m-%d")
+    except ValueError:
+        print("Invalid date format. Use YYYY-MM-DD")
+        return
+
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    filtered = [e for e in entries if start <= e["date"] <= end]
+
+    if not filtered:
+        print("No data in this range.")
+        return
+
+    totals = defaultdict(int)
+    for e in filtered:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+    top_reps = totals[top_ex]
+
+    print(f"\n🏆 Top Exercise from {start_str} → {end_str}\n")
+    print(f"{top_ex}: {top_reps} reps")
+
+
 def list_clients():
     entries = get_entries_or_warn()
     if not entries:
@@ -528,33 +397,118 @@ def show_leaderboard():
         print(f"{i}. {client} → {reps} reps")
 
 
-def show_top_exercise_in_range(start_str, end_str):
-    try:
-        start = datetime.strptime(start_str, "%Y-%m-%d")
-        end = datetime.strptime(end_str, "%Y-%m-%d")
-    except ValueError:
-        print("Invalid date format. Use YYYY-MM-DD")
-        return
-
+def show_top_client_this_week():
     entries = get_entries_or_warn()
     if not entries:
         return
 
-    filtered = [e for e in entries if start <= e["date"] <= end]
+    today = datetime.now()
+    week_ago = today - timedelta(days=7)
 
-    if not filtered:
-        print("No data in this range.")
+    weekly_entries = [e for e in entries if e["date"] >= week_ago]
+
+    if not weekly_entries:
+        print("No workouts this week.")
         return
 
     totals = defaultdict(int)
-    for e in filtered:
-        totals[e["exercise"]] += e["reps"]
+    for e in weekly_entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
 
-    top_ex = max(totals, key=totals.get)
-    top_reps = totals[top_ex]
+    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
 
-    print(f"\n🏆 Top Exercise from {start_str} → {end_str}\n")
-    print(f"{top_ex}: {top_reps} reps")
+    print("\n🏆 TOP CLIENT THIS WEEK\n")
+    for i, (client, reps) in enumerate(ranked, start=1):
+        print(f"{i}. {client} → {reps} reps")
+
+
+def show_at_risk_clients(days_threshold=3):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    latest_by_client = {}
+    for e in entries:
+        client = e.get("client", "Unknown")
+        date = e["date"]
+        if client not in latest_by_client or date > latest_by_client[client]:
+            latest_by_client[client] = date
+
+    today = datetime.now()
+    at_risk = []
+
+    for client, last_date in latest_by_client.items():
+        days_off = (today - last_date).days
+        if days_off >= days_threshold:
+            at_risk.append((client, days_off))
+
+    if not at_risk:
+        print("\n✅ No at-risk clients right now.\n")
+        return
+
+    print("\n⚠️ AT-RISK CLIENTS\n")
+    for client, days in sorted(at_risk, key=lambda x: x[1], reverse=True):
+        print(f"{client} → {days} days inactive")
+
+
+def generate_at_risk_messages(days_threshold=3):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    latest_by_client = {}
+    for e in entries:
+        client = e.get("client", "Unknown")
+        date = e["date"]
+
+        if client not in latest_by_client or date > latest_by_client[client]:
+            latest_by_client[client] = date
+
+    today = datetime.now()
+
+    print("\n📩 REACH OUT LIST\n")
+
+    found_any = False
+    for client, last_date in latest_by_client.items():
+        days_off = (today - last_date).days
+
+        if days_off >= days_threshold:
+            found_any = True
+            if days_off >= 5:
+                msg = f"Hey {client} — haven’t seen you in a bit. Let’s get back into it this week 💪"
+            else:
+                msg = f"Hey {client} — quick check-in. Let’s get a session in this week."
+
+            print(f"{client}:\n\"{msg}\"\n")
+
+    if not found_any:
+        print("No at-risk clients to message.\n")
+
+
+def check_client_inactivity(client_name, days_threshold=2):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data for {client_name}")
+        return
+
+    last_date = max(e["date"] for e in client_entries)
+    today = datetime.now()
+
+    days_off = (today - last_date).days
+
+    if days_off >= days_threshold:
+        print(f"\n⚠️ {client_name} hasn’t trained in {days_off} days")
+    else:
+        print(f"\n✅ {client_name} is on track ({days_off} day gap)")
 
 
 def check_inactivity(days_threshold=2):
@@ -732,6 +686,7 @@ range-top                 → Top exercise in a date range
 check [days]              → Check inactivity (default 2 days)
 inactive CLIENT_NAME      → Check inactivity for a client
 at-risk                   → Show clients inactive for 3+ days
+reach-out                 → Generate messages for at-risk clients
 weekly                    → Show weekly workout report
 message                   → Generate a client check-in message
 message-client NAME       → Generate a check-in message for a specific client
@@ -781,6 +736,7 @@ def menu():
         "30": lambda: print("Use CLI: message-client CLIENT_NAME"),
         "31": lambda: print("Use CLI: report-client CLIENT_NAME"),
         "32": show_at_risk_clients,
+        "33": generate_at_risk_messages,
     }
 
     while True:
@@ -817,6 +773,7 @@ def menu():
         print("30) Generate client message (CLI only)")
         print("31) Generate client report (CLI only)")
         print("32) Show at-risk clients")
+        print("33) Generate reach-out messages")
 
         choice = input("Choose: ").strip()
 
@@ -832,7 +789,9 @@ def run_cli_mode(command):
     if command != "repeat":
         save_last_command(" ".join(sys.argv[1:]))
 
-    entries = parse_entries()
+    entries = get_entries_or_warn()
+    if not entries and command != "repeat":
+        return
 
     if command == "total":
         total_reps_by_exercise(entries)
@@ -879,6 +838,8 @@ def run_cli_mode(command):
         generate_client_report(sys.argv[2])
     elif command == "at-risk":
         show_at_risk_clients()
+    elif command == "reach-out":
+        generate_at_risk_messages()
     elif command == "high":
         show_high_intensity()
     elif command == "dashboard":
@@ -894,13 +855,10 @@ def run_cli_mode(command):
     elif command == "stats":
         exercise = None
         client = None
-
         if len(sys.argv) > 2:
             exercise = sys.argv[2]
-
         if len(sys.argv) > 3:
             client = sys.argv[3]
-
         show_stats(exercise, client)
     elif command == "weekly":
         show_weekly_report()
@@ -908,18 +866,12 @@ def run_cli_mode(command):
         if len(sys.argv) < 4:
             print("Usage: range YYYY-MM-DD YYYY-MM-DD")
             return
-
-        start = sys.argv[2]
-        end = sys.argv[3]
-        show_range_summary(start, end)
+        show_range_summary(sys.argv[2], sys.argv[3])
     elif command == "range-top":
         if len(sys.argv) < 4:
             print("Usage: range-top YYYY-MM-DD YYYY-MM-DD")
             return
-
-        start = sys.argv[2]
-        end = sys.argv[3]
-        show_top_exercise_in_range(start, end)
+        show_top_exercise_in_range(sys.argv[2], sys.argv[3])
     elif command == "help":
         show_help()
     elif command == "clear":
@@ -928,13 +880,11 @@ def run_cli_mode(command):
         export_csv()
     elif command == "check":
         threshold = 2
-
         if len(sys.argv) > 2:
             try:
                 threshold = int(sys.argv[2])
             except ValueError:
                 print("Invalid number. Using default of 2.")
-
         check_inactivity(threshold)
     elif command == "scorecard":
         show_workout_score()
@@ -949,7 +899,42 @@ def run_cli_mode(command):
     else:
         print("Unknown command. Try: help")
 
+def generate_client_report(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
 
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    total_reps = sum(e["reps"] for e in client_entries)
+    days = {e["date"].date() for e in client_entries}
+
+    totals = defaultdict(int)
+    for e in client_entries:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+
+    print(f"\n📊 CLIENT REPORT — {client_name}\n")
+    print(f"Workout Days: {len(days)}")
+    print(f"Total Reps: {total_reps}")
+    print(f"Top Exercise: {top_ex}")
+
+    print("\n💬 Message:")
+    if len(days) >= 4:
+        print("Great consistency this week. Let’s keep building momentum.")
+    elif len(days) >= 2:
+        print("Solid work. Let’s aim for one more session this week.")
+    else:
+        print("Let’s get back on track—small wins this week.")
+        
 def main():
     if len(sys.argv) > 1:
         run_cli_mode(sys.argv[1])
