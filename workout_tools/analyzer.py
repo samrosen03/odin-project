@@ -475,12 +475,14 @@ def generate_at_risk_messages(days_threshold=3):
 
         if days_off >= days_threshold:
             found_any = True
+
             if days_off >= 5:
                 msg = f"Hey {client} — haven’t seen you in a bit. Let’s get back into it this week 💪"
             else:
                 msg = f"Hey {client} — quick check-in. Let’s get a session in this week."
 
-            print(f"{client}:\n\"{msg}\"\n")
+            print(f"{client}: {msg}")
+            print(f"👉 COPY: {msg}\n")
 
     if not found_any:
         print("No at-risk clients to message.\n")
@@ -613,6 +615,37 @@ def generate_client_message():
     print(f"(Total reps logged: {total_reps})")
 
 
+def generate_client_specific_message(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    total_reps = sum(e["reps"] for e in client_entries)
+    days = {e["date"].date() for e in client_entries}
+    streak = get_longest_streak()
+
+    print(f"\n📩 MESSAGE FOR {client_name}\n")
+
+    if len(days) >= 4:
+        msg = f"{client_name}, you’ve been super consistent lately — let’s keep building 💪"
+    elif streak >= 3:
+        msg = f"{client_name}, nice streak going — let’s keep that momentum rolling."
+    else:
+        msg = f"{client_name}, let’s lock back in this week. Small wins."
+
+    print(msg)
+    print(f"\n👉 COPY: {msg}")
+
+
 def streak_warning():
     entries = get_entries_or_warn()
     if not entries:
@@ -659,6 +692,43 @@ def clear_workouts():
         json.dump([], f, indent=2)
 
     print("🧹 Workout data cleared.")
+
+
+def generate_client_report(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    total_reps = sum(e["reps"] for e in client_entries)
+    days = {e["date"].date() for e in client_entries}
+
+    totals = defaultdict(int)
+    for e in client_entries:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+
+    print(f"\n📊 CLIENT REPORT — {client_name}\n")
+    print(f"Workout Days: {len(days)}")
+    print(f"Total Reps: {total_reps}")
+    print(f"Top Exercise: {top_ex}")
+
+    print("\n💬 Message:")
+    if len(days) >= 4:
+        print("Great consistency this week. Let’s keep building momentum.")
+    elif len(days) >= 2:
+        print("Solid work. Let’s aim for one more session this week.")
+    else:
+        print("Let’s get back on track—small wins this week.")
 
 
 def show_help():
@@ -899,42 +969,7 @@ def run_cli_mode(command):
     else:
         print("Unknown command. Try: help")
 
-def generate_client_report(client_name):
-    entries = get_entries_or_warn()
-    if not entries:
-        return
 
-    client_entries = [
-        e for e in entries
-        if e.get("client", "").lower() == client_name.lower()
-    ]
-
-    if not client_entries:
-        print(f"No data found for {client_name}")
-        return
-
-    total_reps = sum(e["reps"] for e in client_entries)
-    days = {e["date"].date() for e in client_entries}
-
-    totals = defaultdict(int)
-    for e in client_entries:
-        totals[e["exercise"]] += e["reps"]
-
-    top_ex = max(totals, key=totals.get)
-
-    print(f"\n📊 CLIENT REPORT — {client_name}\n")
-    print(f"Workout Days: {len(days)}")
-    print(f"Total Reps: {total_reps}")
-    print(f"Top Exercise: {top_ex}")
-
-    print("\n💬 Message:")
-    if len(days) >= 4:
-        print("Great consistency this week. Let’s keep building momentum.")
-    elif len(days) >= 2:
-        print("Solid work. Let’s aim for one more session this week.")
-    else:
-        print("Let’s get back on track—small wins this week.")
-        
 def main():
     if len(sys.argv) > 1:
         run_cli_mode(sys.argv[1])
