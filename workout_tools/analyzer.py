@@ -18,6 +18,25 @@ from workout_tools.service import (
     get_monthly_reps,
 )
 
+def show_high_value_clients():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    totals = defaultdict(int)
+    sessions = defaultdict(int)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+        sessions[client] += 1
+
+    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+
+    print("\n💰 HIGH VALUE CLIENTS (PRIORITIZE THESE)\n")
+
+    for i, (client, reps) in enumerate(ranked[:5], start=1):
+        print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
 
 def save_last_command(command_string):
     os.makedirs("data", exist_ok=True)
@@ -770,6 +789,7 @@ csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
+priority                  → Show high value clients
 """)
 
 
@@ -807,6 +827,7 @@ def menu():
         "31": lambda: print("Use CLI: report-client CLIENT_NAME"),
         "32": show_at_risk_clients,
         "33": generate_at_risk_messages,
+        "34": show_high_value_clients,
     }
 
     while True:
@@ -844,6 +865,7 @@ def menu():
         print("31) Generate client report (CLI only)")
         print("32) Show at-risk clients")
         print("33) Generate reach-out messages")
+        print("34) Show high value clients")
 
         choice = input("Choose: ").strip()
 
@@ -966,6 +988,8 @@ def run_cli_mode(command):
         show_exercise_rankings()
     elif command == "repeat":
         run_last_command()
+    elif command == "priority":
+        show_high_value_clients()
     else:
         print("Unknown command. Try: help")
 
