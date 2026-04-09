@@ -18,6 +18,7 @@ from workout_tools.service import (
     get_monthly_reps,
 )
 
+
 def show_high_value_clients():
     entries = get_entries_or_warn()
     if not entries:
@@ -34,9 +35,9 @@ def show_high_value_clients():
     ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
 
     print("\n💰 HIGH VALUE CLIENTS (PRIORITIZE THESE)\n")
-
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
+
 
 def save_last_command(command_string):
     os.makedirs("data", exist_ok=True)
@@ -579,6 +580,20 @@ def show_workout_score():
         print("\n⚠️ Let’s step it up.")
 
 
+def daily_coach():
+    print("\n🔥 DAILY COACH SYSTEM 🔥")
+    print("\n1️⃣ AT-RISK CLIENTS (BOOK THESE)")
+    generate_at_risk_messages()
+
+    print("\n2️⃣ HIGH VALUE CLIENTS (KEEP THESE)")
+    show_high_value_clients()
+
+    print("\n3️⃣ ACTION PLAN")
+    print("→ Send 3–5 reach-out texts")
+    print("→ Check in with top 2 clients")
+    print("→ Book at least 1 session today\n")
+
+
 def show_weekly_report():
     entries = get_entries_or_warn()
     if not entries:
@@ -648,7 +663,6 @@ def generate_client_specific_message(client_name):
         print(f"No data found for {client_name}")
         return
 
-    total_reps = sum(e["reps"] for e in client_entries)
     days = {e["date"].date() for e in client_entries}
     streak = get_longest_streak()
 
@@ -784,20 +798,21 @@ rank                      → Show exercise rankings
 clients                   → List all clients
 leaderboard               → Rank clients by total reps
 top-client-week           → Top clients ranked by reps this week
+priority                  → Show high value clients
+daily-coach               → Run full daily coach system
 clear                     → Delete all workout entries
 csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
-priority                  → Show high value clients
 """)
 
 
 def menu():
     actions = {
-        "1": lambda: total_reps_by_exercise(parse_entries()),
-        "2": lambda: reps_by_day(parse_entries()),
-        "3": lambda: most_logged_exercise(parse_entries()),
+        "1": lambda: total_reps_by_exercise(get_entries_or_warn()),
+        "2": lambda: reps_by_day(get_entries_or_warn()),
+        "3": lambda: most_logged_exercise(get_entries_or_warn()),
         "4": show_personal_records,
         "5": show_consistency_score,
         "6": show_longest_streak,
@@ -828,6 +843,7 @@ def menu():
         "32": show_at_risk_clients,
         "33": generate_at_risk_messages,
         "34": show_high_value_clients,
+        "35": daily_coach,
     }
 
     while True:
@@ -866,6 +882,7 @@ def menu():
         print("32) Show at-risk clients")
         print("33) Generate reach-out messages")
         print("34) Show high value clients")
+        print("35) Run daily coach system")
 
         choice = input("Choose: ").strip()
 
@@ -986,10 +1003,12 @@ def run_cli_mode(command):
         streak_warning()
     elif command == "rank":
         show_exercise_rankings()
-    elif command == "repeat":
-        run_last_command()
     elif command == "priority":
         show_high_value_clients()
+    elif command == "daily-coach":
+        daily_coach()
+    elif command == "repeat":
+        run_last_command()
     else:
         print("Unknown command. Try: help")
 
