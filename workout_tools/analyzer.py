@@ -38,6 +38,30 @@ def show_high_value_clients():
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
 
+def log_client_response(client_name, status):
+    import json
+    from datetime import datetime
+    import os
+
+    os.makedirs("data", exist_ok=True)
+    file_path = "data/client_responses.json"
+
+    try:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+    except:
+        data = []
+
+    data.append({
+        "client": client_name,
+        "status": status,  # "booked", "no response", "declined"
+        "date": datetime.now().strftime("%Y-%m-%d")
+    })
+
+    with open(file_path, "w") as f:
+        json.dump(data, f, indent=2)
+
+    print(f"✅ Logged: {client_name} → {status}")
 
 def save_last_command(command_string):
     os.makedirs("data", exist_ok=True)
@@ -1009,6 +1033,15 @@ def run_cli_mode(command):
         daily_coach()
     elif command == "repeat":
         run_last_command()
+    elif command == "log-response":
+        if len(sys.argv) < 4:
+            print("Usage: log-response CLIENT_NAME STATUS")
+            return
+
+        client = sys.argv[2]
+        status = sys.argv[3]
+
+        log_client_response(client, status)
     else:
         print("Unknown command. Try: help")
 
