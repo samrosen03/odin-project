@@ -37,6 +37,40 @@ def show_high_value_clients():
     print("\n💰 HIGH VALUE CLIENTS (PRIORITIZE THESE)\n")
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
+def follow_up_needed(days_threshold=2):
+    import json
+    from datetime import datetime, timedelta
+
+    file_path = "data/client_responses.json"
+
+    try:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+    except:
+        print("No response data found.")
+        return
+
+    today = datetime.now()
+    follow_ups = []
+
+    for entry in data:
+        if entry["status"] == "no-response":
+            last_date = datetime.strptime(entry["date"], "%Y-%m-%d")
+            days_passed = (today - last_date).days
+
+            if days_passed >= days_threshold:
+                follow_ups.append((entry["client"], days_passed))
+
+    if not follow_ups:
+        print("\n✅ No follow-ups needed.\n")
+        return
+
+    print("\n📲 FOLLOW-UP NEEDED\n")
+
+    for client, days in follow_ups:
+        msg = f"Hey {client} — just checking back in. Let’s get you scheduled this week 💪"
+        print(f"{client} → {days} days")
+        print(f"👉 COPY: {msg}\n")
 
 def log_client_response(client_name, status):
     import json
@@ -829,6 +863,7 @@ csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
+follow-up                 → Follow up with clients
 """)
 
 
@@ -868,6 +903,7 @@ def menu():
         "33": generate_at_risk_messages,
         "34": show_high_value_clients,
         "35": daily_coach,
+        "36": follow_up_needed
     }
 
     while True:
@@ -907,6 +943,7 @@ def menu():
         print("33) Generate reach-out messages")
         print("34) Show high value clients")
         print("35) Run daily coach system")
+        print("36) Follow up with clients")
 
         choice = input("Choose: ").strip()
 
@@ -969,6 +1006,8 @@ def run_cli_mode(command):
             print("Usage: report-client CLIENT_NAME")
             return
         generate_client_report(sys.argv[2])
+    elif command == "follow-up":
+        follow_up_needed()
     elif command == "at-risk":
         show_at_risk_clients()
     elif command == "reach-out":
