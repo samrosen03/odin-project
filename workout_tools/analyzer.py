@@ -37,65 +37,41 @@ def show_high_value_clients():
     print("\n💰 HIGH VALUE CLIENTS (PRIORITIZE THESE)\n")
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
-def follow_up_needed(days_threshold=2):
-    import json
-    from datetime import datetime, timedelta
 
-    file_path = "data/client_responses.json"
 
-    try:
-        with open(file_path, "r") as f:
-            data = json.load(f)
-    except:
-        print("No response data found.")
+def show_priority_clients():
+    entries = get_entries_or_warn()
+    if not entries:
         return
+
+    totals = defaultdict(int)
+    last_seen = {}
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+
+        if client not in last_seen or e["date"] > last_seen[client]:
+            last_seen[client] = e["date"]
 
     today = datetime.now()
-    follow_ups = []
 
-    for entry in data:
-        if entry["status"] == "no-response":
-            last_date = datetime.strptime(entry["date"], "%Y-%m-%d")
-            days_passed = (today - last_date).days
+    scored = []
+    for client in totals:
+        days_off = (today - last_seen[client]).days
+        score = totals[client] - (days_off * 50)
+        scored.append((client, score, days_off, totals[client]))
 
-            if days_passed >= days_threshold:
-                follow_ups.append((entry["client"], days_passed))
+    ranked = sorted(scored, key=lambda x: x[1], reverse=True)
 
-    if not follow_ups:
-        print("\n✅ No follow-ups needed.\n")
-        return
+    print("\n🎯 TOP 3 CLIENTS TO FOCUS TODAY\n")
 
-    print("\n📲 FOLLOW-UP NEEDED\n")
+    for i, (client, score, days_off, reps) in enumerate(ranked[:3], start=1):
+        print(f"{i}. {client}")
+        print(f"   Reps: {reps}")
+        print(f"   Days inactive: {days_off}")
+        print(f"   Priority score: {score}\n")
 
-    for client, days in follow_ups:
-        msg = f"Hey {client} — just checking back in. Let’s get you scheduled this week 💪"
-        print(f"{client} → {days} days")
-        print(f"👉 COPY: {msg}\n")
-
-def log_client_response(client_name, status):
-    import json
-    from datetime import datetime
-    import os
-
-    os.makedirs("data", exist_ok=True)
-    file_path = "data/client_responses.json"
-
-    try:
-        with open(file_path, "r") as f:
-            data = json.load(f)
-    except:
-        data = []
-
-    data.append({
-        "client": client_name,
-        "status": status,  # "booked", "no response", "declined"
-        "date": datetime.now().strftime("%Y-%m-%d")
-    })
-
-    with open(file_path, "w") as f:
-        json.dump(data, f, indent=2)
-
-    print(f"✅ Logged: {client_name} → {status}")
 
 def save_last_command(command_string):
     os.makedirs("data", exist_ok=True)
@@ -857,13 +833,13 @@ clients                   → List all clients
 leaderboard               → Rank clients by total reps
 top-client-week           → Top clients ranked by reps this week
 priority                  → Show high value clients
+priority-today            → Show top 3 clients to focus today
 daily-coach               → Run full daily coach system
 clear                     → Delete all workout entries
 csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
-follow-up                 → Follow up with clients
 """)
 
 
@@ -903,7 +879,7 @@ def menu():
         "33": generate_at_risk_messages,
         "34": show_high_value_clients,
         "35": daily_coach,
-        "36": follow_up_needed
+        "36": show_priority_clients,
     }
 
     while True:
@@ -943,7 +919,7 @@ def menu():
         print("33) Generate reach-out messages")
         print("34) Show high value clients")
         print("35) Run daily coach system")
-        print("36) Follow up with clients")
+        print("36) Show top 3 clients to focus today")
 
         choice = input("Choose: ").strip()
 
@@ -1006,8 +982,6 @@ def run_cli_mode(command):
             print("Usage: report-client CLIENT_NAME")
             return
         generate_client_report(sys.argv[2])
-    elif command == "follow-up":
-        follow_up_needed()
     elif command == "at-risk":
         show_at_risk_clients()
     elif command == "reach-out":
@@ -1068,19 +1042,12 @@ def run_cli_mode(command):
         show_exercise_rankings()
     elif command == "priority":
         show_high_value_clients()
+    elif command == "priority-today":
+        show_priority_clients()
     elif command == "daily-coach":
         daily_coach()
     elif command == "repeat":
         run_last_command()
-    elif command == "log-response":
-        if len(sys.argv) < 4:
-            print("Usage: log-response CLIENT_NAME STATUS")
-            return
-
-        client = sys.argv[2]
-        status = sys.argv[3]
-
-        log_client_response(client, status)
     else:
         print("Unknown command. Try: help")
 
