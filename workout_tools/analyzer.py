@@ -38,6 +38,21 @@ def show_high_value_clients():
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
 
+def show_client_revenue(rate_per_session=75):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    sessions = defaultdict(int)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        sessions[client] += 1
+
+    print("\n💵 CLIENT REVENUE\n")
+    for client, count in sorted(sessions.items(), key=lambda x: x[1], reverse=True):
+        revenue = count * rate_per_session
+        print(f"{client} → ${revenue} ({count} sessions)")
 
 def show_priority_clients():
     entries = get_entries_or_warn()
@@ -840,6 +855,7 @@ csv                       → Export workouts as CSV file
 scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
+revenue                   → Show estimated revenue by client
 """)
 
 
@@ -880,6 +896,7 @@ def menu():
         "34": show_high_value_clients,
         "35": daily_coach,
         "36": show_priority_clients,
+        "37": show_client_revenue,
     }
 
     while True:
@@ -920,6 +937,7 @@ def menu():
         print("34) Show high value clients")
         print("35) Run daily coach system")
         print("36) Show top 3 clients to focus today")
+        print("37) Show client revenue")
 
         choice = input("Choose: ").strip()
 
@@ -1018,6 +1036,8 @@ def run_cli_mode(command):
             print("Usage: range-top YYYY-MM-DD YYYY-MM-DD")
             return
         show_top_exercise_in_range(sys.argv[2], sys.argv[3])
+    elif command == "revenue":
+        show_client_revenue()
     elif command == "help":
         show_help()
     elif command == "clear":
