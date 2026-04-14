@@ -18,6 +18,31 @@ from workout_tools.service import (
     get_monthly_reps,
 )
 
+def show_top_client_this_month():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    today = datetime.now()
+    month_entries = [
+        e for e in entries
+        if e["date"].year == today.year and e["date"].month == today.month
+    ]
+
+    if not month_entries:
+        print("No workouts this month.")
+        return
+
+    totals = defaultdict(int)
+    for e in month_entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+
+    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+
+    print("\n🏆 TOP CLIENT THIS MONTH\n")
+    for i, (client, reps) in enumerate(ranked, start=1):
+        print(f"{i}. {client} → {reps} reps")
 
 def show_high_value_clients():
     entries = get_entries_or_warn()
@@ -856,6 +881,7 @@ scorecard                 → Show workout score (0–100)
 repeat                    → Repeat last command
 help                      → Show this help menu
 revenue                   → Show estimated revenue by client
+top-client-month          → Show top client this month
 """)
 
 
@@ -897,6 +923,7 @@ def menu():
         "35": daily_coach,
         "36": show_priority_clients,
         "37": show_client_revenue,
+        "38": show_top_client_this_month,
     }
 
     while True:
@@ -938,6 +965,7 @@ def menu():
         print("35) Run daily coach system")
         print("36) Show top 3 clients to focus today")
         print("37) Show client revenue")
+        print("38) Show top client this month")
 
         choice = input("Choose: ").strip()
 
@@ -1000,6 +1028,8 @@ def run_cli_mode(command):
             print("Usage: report-client CLIENT_NAME")
             return
         generate_client_report(sys.argv[2])
+    elif command == "top-client-month":
+        show_top_client_this_month()
     elif command == "at-risk":
         show_at_risk_clients()
     elif command == "reach-out":
