@@ -44,6 +44,27 @@ def show_top_client_this_month():
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
+def show_best_day():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    daily = defaultdict(int)
+
+    for e in entries:
+        day = e["date"].date()
+        daily[day] += e["reps"]
+
+    if not daily:
+        print("No data available.")
+        return
+
+    best_day = max(daily, key=daily.get)
+    best_reps = daily[best_day]
+
+    print("\n🔥 BEST WORKOUT DAY\n")
+    print(f"{best_day} → {best_reps} reps")
+
 def show_high_value_clients():
     entries = get_entries_or_warn()
     if not entries:
@@ -882,6 +903,7 @@ repeat                    → Repeat last command
 help                      → Show this help menu
 revenue                   → Show estimated revenue by client
 top-client-month          → Show top client this month
+best-day                  → Show best workout day
 """)
 
 
@@ -924,6 +946,7 @@ def menu():
         "36": show_priority_clients,
         "37": show_client_revenue,
         "38": show_top_client_this_month,
+        "39": show_best_day
     }
 
     while True:
@@ -966,6 +989,7 @@ def menu():
         print("36) Show top 3 clients to focus today")
         print("37) Show client revenue")
         print("38) Show top client this month")
+        print("39) Show best workout day")
 
         choice = input("Choose: ").strip()
 
@@ -1028,6 +1052,8 @@ def run_cli_mode(command):
             print("Usage: report-client CLIENT_NAME")
             return
         generate_client_report(sys.argv[2])
+    elif command == "best-day":
+        show_best_day()
     elif command == "top-client-month":
         show_top_client_this_month()
     elif command == "at-risk":
