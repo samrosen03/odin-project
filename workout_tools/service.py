@@ -177,3 +177,13 @@ def get_monthly_reps():
         monthly_totals[month] += e["reps"]
 
     return dict(sorted(monthly_totals.items()))
+from collections import defaultdict
+
+def get_client_leaderboard(entries):
+    totals = defaultdict(int)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+
+    return sorted(totals.items(), key=lambda x: x[1], reverse=True)

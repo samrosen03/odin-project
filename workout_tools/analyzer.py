@@ -16,6 +16,7 @@ from workout_tools.service import (
     get_average_reps_per_exercise,
     generate_report,
     get_monthly_reps,
+    get_client_leaderboard  
 )
 
 def show_top_client_this_month():
@@ -500,18 +501,12 @@ def show_leaderboard():
     if not entries:
         return
 
-    totals = defaultdict(int)
-    for e in entries:
-        client = e.get("client", "Unknown")
-        totals[client] += e["reps"]
-
-    ranked = sorted(totals.items(), key=lambda x: x[1], reverse=True)
+    ranked = get_client_leaderboard(entries)
 
     print("\n🏆 CLIENT LEADERBOARD\n")
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
-
-
+        
 def show_top_client_this_week():
     entries = get_entries_or_warn()
     if not entries:
