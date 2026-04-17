@@ -16,8 +16,9 @@ from workout_tools.service import (
     get_average_reps_per_exercise,
     generate_report,
     get_monthly_reps,
-    get_client_leaderboard  
+    get_client_leaderboard,
 )
+
 
 def show_top_client_this_month():
     entries = get_entries_or_warn()
@@ -45,6 +46,29 @@ def show_top_client_this_month():
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
+
+def show_summary():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    total_reps = sum(e["reps"] for e in entries)
+    workout_days = len({e["date"].date() for e in entries})
+    streak = get_longest_streak()
+
+    counts = defaultdict(int)
+    for e in entries:
+        counts[e["exercise"]] += 1
+
+    top_exercise = max(counts, key=counts.get) if counts else "None"
+
+    print("\n📋 WORKOUT SUMMARY\n")
+    print(f"Total Reps: {total_reps}")
+    print(f"Workout Days: {workout_days}")
+    print(f"Most Logged Exercise: {top_exercise}")
+    print(f"Longest Streak: {streak} days")
+
+
 def show_best_day():
     entries = get_entries_or_warn()
     if not entries:
@@ -66,6 +90,7 @@ def show_best_day():
     print("\n🔥 BEST WORKOUT DAY\n")
     print(f"{best_day} → {best_reps} reps")
 
+
 def show_high_value_clients():
     entries = get_entries_or_warn()
     if not entries:
@@ -85,6 +110,7 @@ def show_high_value_clients():
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
 
+
 def show_client_revenue(rate_per_session=75):
     entries = get_entries_or_warn()
     if not entries:
@@ -100,6 +126,7 @@ def show_client_revenue(rate_per_session=75):
     for client, count in sorted(sessions.items(), key=lambda x: x[1], reverse=True):
         revenue = count * rate_per_session
         print(f"{client} → ${revenue} ({count} sessions)")
+
 
 def show_priority_clients():
     entries = get_entries_or_warn()
@@ -506,7 +533,8 @@ def show_leaderboard():
     print("\n🏆 CLIENT LEADERBOARD\n")
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
-        
+
+
 def show_top_client_this_week():
     entries = get_entries_or_warn()
     if not entries:
@@ -899,6 +927,7 @@ help                      → Show this help menu
 revenue                   → Show estimated revenue by client
 top-client-month          → Show top client this month
 best-day                  → Show best workout day
+summary                   → Show workout summary
 """)
 
 
@@ -941,7 +970,8 @@ def menu():
         "36": show_priority_clients,
         "37": show_client_revenue,
         "38": show_top_client_this_month,
-        "39": show_best_day
+        "39": show_best_day,
+        "40": show_summary,
     }
 
     while True:
@@ -985,6 +1015,7 @@ def menu():
         print("37) Show client revenue")
         print("38) Show top client this month")
         print("39) Show best workout day")
+        print("40) Show workout summary")
 
         choice = input("Choose: ").strip()
 
@@ -1051,6 +1082,8 @@ def run_cli_mode(command):
         show_best_day()
     elif command == "top-client-month":
         show_top_client_this_month()
+    elif command == "summary":
+        show_summary()
     elif command == "at-risk":
         show_at_risk_clients()
     elif command == "reach-out":
@@ -1097,11 +1130,13 @@ def run_cli_mode(command):
         export_csv()
     elif command == "check":
         threshold = 2
+
         if len(sys.argv) > 2:
             try:
                 threshold = int(sys.argv[2])
             except ValueError:
                 print("Invalid number. Using default of 2.")
+
         check_inactivity(threshold)
     elif command == "scorecard":
         show_workout_score()
