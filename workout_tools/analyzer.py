@@ -46,6 +46,20 @@ def show_top_client_this_month():
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
+def show_recent_workouts(limit=5):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    recent = sorted(entries, key=lambda e: e["date"], reverse=True)[:limit]
+
+    print(f"\n🕒 LAST {len(recent)} WORKOUTS\n")
+    for entry in recent:
+        date = entry["date"].date()
+        client = entry.get("client", "Unknown")
+        exercise = entry["exercise"]
+        reps = entry["reps"]
+        print(f"{date} → {client} | {exercise} | {reps} reps")
 
 def show_summary():
     entries = get_entries_or_warn()
@@ -928,6 +942,7 @@ revenue                   → Show estimated revenue by client
 top-client-month          → Show top client this month
 best-day                  → Show best workout day
 summary                   → Show workout summary
+recent                    → Show most recent workouts
 """)
 
 
@@ -972,6 +987,7 @@ def menu():
         "38": show_top_client_this_month,
         "39": show_best_day,
         "40": show_summary,
+        "41": show_recent_workouts,
     }
 
     while True:
@@ -1016,6 +1032,7 @@ def menu():
         print("38) Show top client this month")
         print("39) Show best workout day")
         print("40) Show workout summary")
+        print("41) Show most recent workouts")
 
         choice = input("Choose: ").strip()
 
@@ -1094,6 +1111,8 @@ def run_cli_mode(command):
         show_dashboard()
     elif command == "invalid":
         show_invalid_entries()
+    elif command == "recent":
+        show_recent_workouts()
     elif command == "average":
         show_average_reps()
     elif command == "report":
