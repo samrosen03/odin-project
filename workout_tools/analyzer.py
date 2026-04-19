@@ -61,6 +61,16 @@ def show_recent_workouts(limit=5):
         reps = entry["reps"]
         print(f"{date} → {client} | {exercise} | {reps} reps")
 
+def show_client_count():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    clients = {e.get("client", "Unknown") for e in entries}
+
+    print("\n👥 CLIENT COUNT\n")
+    print(f"Total Unique Clients: {len(clients)}")
+
 def show_summary():
     entries = get_entries_or_warn()
     if not entries:
@@ -943,6 +953,7 @@ top-client-month          → Show top client this month
 best-day                  → Show best workout day
 summary                   → Show workout summary
 recent                    → Show most recent workouts
+clients                   → Show client count
 """)
 
 
@@ -988,6 +999,7 @@ def menu():
         "39": show_best_day,
         "40": show_summary,
         "41": show_recent_workouts,
+        "42": show_client_count
     }
 
     while True:
@@ -1033,6 +1045,7 @@ def menu():
         print("39) Show best workout day")
         print("40) Show workout summary")
         print("41) Show most recent workouts")
+        print("42) Show client count")
 
         choice = input("Choose: ").strip()
 
@@ -1157,6 +1170,8 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
+    elif command == "client-count":
+        show_client_count()
     elif command == "scorecard":
         show_workout_score()
     elif command == "message":
