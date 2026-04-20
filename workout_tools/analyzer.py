@@ -584,6 +584,24 @@ def show_top_client_this_week():
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
 
+def show_today_workouts():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    today = datetime.now().date()
+    today_entries = [e for e in entries if e["date"].date() == today]
+
+    if not today_entries:
+        print("\nNo workouts logged today.\n")
+        return
+
+    print("\n📅 TODAY’S WORKOUTS\n")
+    for e in today_entries:
+        client = e.get("client", "Unknown")
+        exercise = e["exercise"]
+        reps = e["reps"]
+        print(f"{client} → {exercise} ({reps} reps)")
 
 def show_at_risk_clients(days_threshold=3):
     entries = get_entries_or_warn()
@@ -954,6 +972,7 @@ best-day                  → Show best workout day
 summary                   → Show workout summary
 recent                    → Show most recent workouts
 clients                   → Show client count
+today                     → Show today's workouts
 """)
 
 
@@ -999,7 +1018,8 @@ def menu():
         "39": show_best_day,
         "40": show_summary,
         "41": show_recent_workouts,
-        "42": show_client_count
+        "42": show_client_count,
+        "43": show_today_workouts
     }
 
     while True:
@@ -1046,6 +1066,7 @@ def menu():
         print("40) Show workout summary")
         print("41) Show most recent workouts")
         print("42) Show client count")
+        print("43) Show today's workouts")
 
         choice = input("Choose: ").strip()
 
@@ -1188,6 +1209,8 @@ def run_cli_mode(command):
         daily_coach()
     elif command == "repeat":
         run_last_command()
+    elif command == "today":
+        show_today_workouts()
     else:
         print("Unknown command. Try: help")
 
