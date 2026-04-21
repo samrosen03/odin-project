@@ -739,6 +739,38 @@ def show_workout_score():
     else:
         print("\n⚠️ Let’s step it up.")
 
+def show_client_summary(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    total_reps = sum(e["reps"] for e in client_entries)
+    workout_days = len({e["date"].date() for e in client_entries})
+
+    last_date = max(e["date"] for e in client_entries)
+    days_inactive = (datetime.now() - last_date).days
+
+    counts = defaultdict(int)
+    for e in client_entries:
+        counts[e["exercise"]] += e["reps"]
+
+    top_exercise = max(counts, key=counts.get)
+
+    print(f"\n📊 CLIENT SUMMARY — {client_name}\n")
+    print(f"Total Reps: {total_reps}")
+    print(f"Workout Days: {workout_days}")
+    print(f"Top Exercise: {top_exercise}")
+    print(f"Last Workout: {last_date.date()}")
+    print(f"Days Inactive: {days_inactive}")
 
 def daily_coach():
     print("\n🔥 DAILY COACH SYSTEM 🔥")
@@ -973,6 +1005,7 @@ summary                   → Show workout summary
 recent                    → Show most recent workouts
 clients                   → Show client count
 today                     → Show today's workouts
+client-summary NAME       → Show full breakdown for a client
 """)
 
 
@@ -1067,6 +1100,7 @@ def menu():
         print("41) Show most recent workouts")
         print("42) Show client count")
         print("43) Show today's workouts")
+        print("44) Show client summary (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1211,6 +1245,11 @@ def run_cli_mode(command):
         run_last_command()
     elif command == "today":
         show_today_workouts()
+    elif command == "client-summary":
+        if len(sys.argv) < 3:
+            print("Usage: client-summary CLIENT_NAME")
+            return
+        show_client_summary(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
