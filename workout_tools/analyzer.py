@@ -61,6 +61,30 @@ def show_recent_workouts(limit=5):
         reps = entry["reps"]
         print(f"{date} → {client} | {exercise} | {reps} reps")
 
+def show_client_top_exercise(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    totals = defaultdict(int)
+    for e in client_entries:
+        totals[e["exercise"]] += e["reps"]
+
+    top_ex = max(totals, key=totals.get)
+    top_reps = totals[top_ex]
+
+    print(f"\n🏆 TOP EXERCISE — {client_name}\n")
+    print(f"{top_ex} → {top_reps} reps")
+
 def show_client_count():
     entries = get_entries_or_warn()
     if not entries:
@@ -1006,6 +1030,7 @@ recent                    → Show most recent workouts
 clients                   → Show client count
 today                     → Show today's workouts
 client-summary NAME       → Show full breakdown for a client
+top-exercise NAME         → Show top exercise for a client
 """)
 
 
@@ -1052,7 +1077,10 @@ def menu():
         "40": show_summary,
         "41": show_recent_workouts,
         "42": show_client_count,
-        "43": show_today_workouts
+        "43": show_today_workouts,
+        "44": lambda: print("Use CLI: client-summary CLIENT_NAME"),
+        "45": lambda: print("Use CLI: top-exercise CLIENT_NAME")
+
     }
 
     while True:
@@ -1101,6 +1129,7 @@ def menu():
         print("42) Show client count")
         print("43) Show today's workouts")
         print("44) Show client summary (CLI only)")
+        print("45) Show client top exercise (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1250,6 +1279,11 @@ def run_cli_mode(command):
             print("Usage: client-summary CLIENT_NAME")
             return
         show_client_summary(sys.argv[2])
+    elif command == "top-exercise":
+        if len(sys.argv) < 3:
+            print("Usage: top-exercise CLIENT_NAME")
+            return
+        show_client_top_exercise(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
