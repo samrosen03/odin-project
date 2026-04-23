@@ -158,6 +158,36 @@ def show_high_value_clients():
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
 
+def show_client_streak(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    # Get unique workout days sorted
+    days = sorted({e["date"].date() for e in client_entries})
+
+    streak = 1
+    longest = 1
+
+    for i in range(1, len(days)):
+        if (days[i] - days[i - 1]).days == 1:
+            streak += 1
+            longest = max(longest, streak)
+        else:
+            streak = 1
+
+    print(f"\n🔥 STREAK — {client_name}\n")
+    print(f"Current/Recent Streak: {streak} days")
+    print(f"Longest Streak: {longest} days")
 
 def show_client_revenue(rate_per_session=75):
     entries = get_entries_or_warn()
@@ -1031,6 +1061,7 @@ clients                   → Show client count
 today                     → Show today's workouts
 client-summary NAME       → Show full breakdown for a client
 top-exercise NAME         → Show top exercise for a client
+streak-client NAME        → Show workout streak for a client
 """)
 
 
@@ -1079,7 +1110,8 @@ def menu():
         "42": show_client_count,
         "43": show_today_workouts,
         "44": lambda: print("Use CLI: client-summary CLIENT_NAME"),
-        "45": lambda: print("Use CLI: top-exercise CLIENT_NAME")
+        "45": lambda: print("Use CLI: top-exercise CLIENT_NAME"),
+        "46": lambda: print("Use CLI: streak-client CLIENT_NAME")
 
     }
 
@@ -1130,6 +1162,7 @@ def menu():
         print("43) Show today's workouts")
         print("44) Show client summary (CLI only)")
         print("45) Show client top exercise (CLI only)")
+        print("46) Show client workout streak (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1284,6 +1317,11 @@ def run_cli_mode(command):
             print("Usage: top-exercise CLIENT_NAME")
             return
         show_client_top_exercise(sys.argv[2])
+    elif command == "streak-client":
+        if len(sys.argv) < 3:
+            print("Usage: streak-client CLIENT_NAME")
+            return
+        show_client_streak(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
