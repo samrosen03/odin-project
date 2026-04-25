@@ -85,6 +85,45 @@ def show_client_top_exercise(client_name):
     print(f"\n🏆 TOP EXERCISE — {client_name}\n")
     print(f"{top_ex} → {top_reps} reps")
 
+def compare_clients(client1, client2):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    def get_stats(name):
+        client_entries = [
+            e for e in entries
+            if e.get("client", "").lower() == name.lower()
+        ]
+
+        if not client_entries:
+            return None
+
+        total_reps = sum(e["reps"] for e in client_entries)
+        days = len({e["date"].date() for e in client_entries})
+
+        totals = defaultdict(int)
+        for e in client_entries:
+            totals[e["exercise"]] += e["reps"]
+
+        top_ex = max(totals, key=totals.get) if totals else "None"
+
+        return total_reps, days, top_ex
+
+    stats1 = get_stats(client1)
+    stats2 = get_stats(client2)
+
+    if not stats1 or not stats2:
+        print("One or both clients not found.")
+        return
+
+    print(f"\n⚔️ CLIENT COMPARISON\n")
+    print(f"{client1} vs {client2}\n")
+
+    print(f"Total Reps: {stats1[0]} vs {stats2[0]}")
+    print(f"Workout Days: {stats1[1]} vs {stats2[1]}")
+    print(f"Top Exercise: {stats1[2]} vs {stats2[2]}")
+
 def show_client_count():
     entries = get_entries_or_warn()
     if not entries:
@@ -1062,6 +1101,7 @@ today                     → Show today's workouts
 client-summary NAME       → Show full breakdown for a client
 top-exercise NAME         → Show top exercise for a client
 streak-client NAME        → Show workout streak for a client
+compare NAME1 NAME2      → Compare two clients
 """)
 
 
@@ -1111,7 +1151,8 @@ def menu():
         "43": show_today_workouts,
         "44": lambda: print("Use CLI: client-summary CLIENT_NAME"),
         "45": lambda: print("Use CLI: top-exercise CLIENT_NAME"),
-        "46": lambda: print("Use CLI: streak-client CLIENT_NAME")
+        "46": lambda: print("Use CLI: streak-client CLIENT_NAME"),
+        "47": lambda: print("Use CLI: compare CLIENT_NAME1 CLIENT_NAME2")
 
     }
 
@@ -1163,6 +1204,7 @@ def menu():
         print("44) Show client summary (CLI only)")
         print("45) Show client top exercise (CLI only)")
         print("46) Show client workout streak (CLI only)")
+        print("47) Compare two clients (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1322,6 +1364,11 @@ def run_cli_mode(command):
             print("Usage: streak-client CLIENT_NAME")
             return
         show_client_streak(sys.argv[2])
+    elif command == "compare":
+        if len(sys.argv) < 4:
+            print("Usage: compare NAME1 NAME2")
+            return
+        compare_clients(sys.argv[2], sys.argv[3])
     else:
         print("Unknown command. Try: help")
 
