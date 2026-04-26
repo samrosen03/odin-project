@@ -963,6 +963,28 @@ def generate_client_specific_message(client_name):
     print(msg)
     print(f"\n👉 COPY: {msg}")
 
+def show_last_workout(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    last_entry = max(client_entries, key=lambda e: e["date"])
+
+    date = last_entry["date"].date()
+    exercise = last_entry["exercise"]
+    reps = last_entry["reps"]
+
+    print(f"\n🕒 LAST WORKOUT — {client_name}\n")
+    print(f"{date} → {exercise} ({reps} reps)")
 
 def streak_warning():
     entries = get_entries_or_warn()
@@ -1102,6 +1124,7 @@ client-summary NAME       → Show full breakdown for a client
 top-exercise NAME         → Show top exercise for a client
 streak-client NAME        → Show workout streak for a client
 compare NAME1 NAME2      → Compare two clients
+last-workout NAME        → Show most recent workout for a client
 """)
 
 
@@ -1152,7 +1175,8 @@ def menu():
         "44": lambda: print("Use CLI: client-summary CLIENT_NAME"),
         "45": lambda: print("Use CLI: top-exercise CLIENT_NAME"),
         "46": lambda: print("Use CLI: streak-client CLIENT_NAME"),
-        "47": lambda: print("Use CLI: compare CLIENT_NAME1 CLIENT_NAME2")
+        "47": lambda: print("Use CLI: compare CLIENT_NAME1 CLIENT_NAME2"),
+        "48": lambda: print("Use CLI: last-workout CLIENT_NAME")
 
     }
 
@@ -1205,6 +1229,7 @@ def menu():
         print("45) Show client top exercise (CLI only)")
         print("46) Show client workout streak (CLI only)")
         print("47) Compare two clients (CLI only)")
+        print("48) Show last workout (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1369,6 +1394,11 @@ def run_cli_mode(command):
             print("Usage: compare NAME1 NAME2")
             return
         compare_clients(sys.argv[2], sys.argv[3])
+    elif command == "last-workout":
+        if len(sys.argv) < 3:
+            print("Usage: last-workout CLIENT_NAME")
+            return
+        show_last_workout(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
