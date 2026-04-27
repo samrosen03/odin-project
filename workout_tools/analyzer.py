@@ -155,6 +155,39 @@ def show_summary():
     print(f"Most Logged Exercise: {top_exercise}")
     print(f"Longest Streak: {streak} days")
 
+def show_clients_needing_attention(days_threshold=3):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    latest_by_client = {}
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        date = e["date"]
+
+        if client not in latest_by_client or date > latest_by_client[client]:
+            latest_by_client[client] = date
+
+    today = datetime.now()
+
+    results = []
+    for client, last_date in latest_by_client.items():
+        days_off = (today - last_date).days
+
+        if days_off >= days_threshold:
+            results.append((client, days_off))
+
+    if not results:
+        print("\n✅ No clients need attention right now.\n")
+        return
+
+    # sort by MOST inactive
+    results.sort(key=lambda x: x[1], reverse=True)
+
+    print("\n🚨 CLIENTS NEEDING ATTENTION\n")
+    for client, days in results:
+        print(f"{client} → {days} days inactive")
 
 def show_best_day():
     entries = get_entries_or_warn()
@@ -1125,6 +1158,7 @@ top-exercise NAME         → Show top exercise for a client
 streak-client NAME        → Show workout streak for a client
 compare NAME1 NAME2      → Compare two clients
 last-workout NAME        → Show most recent workout for a client
+needs-attention          → Show clients inactive beyond threshold
 """)
 
 
@@ -1176,7 +1210,8 @@ def menu():
         "45": lambda: print("Use CLI: top-exercise CLIENT_NAME"),
         "46": lambda: print("Use CLI: streak-client CLIENT_NAME"),
         "47": lambda: print("Use CLI: compare CLIENT_NAME1 CLIENT_NAME2"),
-        "48": lambda: print("Use CLI: last-workout CLIENT_NAME")
+        "48": lambda: print("Use CLI: last-workout CLIENT_NAME"),
+        "49": lambda: print("Use CLI: needs-attention")
 
     }
 
@@ -1230,6 +1265,7 @@ def menu():
         print("46) Show client workout streak (CLI only)")
         print("47) Compare two clients (CLI only)")
         print("48) Show last workout (CLI only)")
+        print("49) Show clients needing attention (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1399,6 +1435,16 @@ def run_cli_mode(command):
             print("Usage: last-workout CLIENT_NAME")
             return
         show_last_workout(sys.argv[2])
+    elif command == "needs-attention":
+        threshold = 3
+
+        if len(sys.argv) > 2:
+            try:
+                threshold = int(sys.argv[2])
+            except ValueError:
+                print("Invalid number. Using default of 3.")
+
+        show_clients_needing_attention(threshold)
     else:
         print("Unknown command. Try: help")
 
