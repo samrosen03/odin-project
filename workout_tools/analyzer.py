@@ -210,6 +210,42 @@ def show_best_day():
     print("\n🔥 BEST WORKOUT DAY\n")
     print(f"{best_day} → {best_reps} reps")
 
+def suggest_next_step(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    # last workout
+    last_entry = max(client_entries, key=lambda e: e["date"])
+    last_date = last_entry["date"]
+    days_off = (datetime.now() - last_date).days
+
+    # workout days
+    days = {e["date"].date() for e in client_entries}
+
+    print(f"\n🧠 SUGGESTION — {client_name}\n")
+
+    if days_off >= 5:
+        print("👉 Client has been inactive. Focus on getting them back in ASAP.")
+        print("👉 Start light and rebuild momentum.")
+    elif days_off >= 2:
+        print("👉 Send a check-in message and book next session.")
+    elif len(days) >= 4:
+        print("👉 Great consistency — consider progressing intensity.")
+    else:
+        print("👉 Build consistency — aim for 3–4 sessions this week.")
+
+    print(f"\nLast Workout: {last_date.date()}")
+    print(f"Days Inactive: {days_off}")
 
 def show_high_value_clients():
     entries = get_entries_or_warn()
@@ -1159,6 +1195,7 @@ streak-client NAME        → Show workout streak for a client
 compare NAME1 NAME2      → Compare two clients
 last-workout NAME        → Show most recent workout for a client
 needs-attention          → Show clients inactive beyond threshold
+suggest NAME             → Suggest next coaching step for a client
 """)
 
 
@@ -1211,7 +1248,9 @@ def menu():
         "46": lambda: print("Use CLI: streak-client CLIENT_NAME"),
         "47": lambda: print("Use CLI: compare CLIENT_NAME1 CLIENT_NAME2"),
         "48": lambda: print("Use CLI: last-workout CLIENT_NAME"),
-        "49": lambda: print("Use CLI: needs-attention")
+        "49": lambda: print("Use CLI: needs-attention"),
+        "50": lambda: print("Use CLI: suggest CLIENT_NAME")
+
 
     }
 
@@ -1266,6 +1305,9 @@ def menu():
         print("47) Compare two clients (CLI only)")
         print("48) Show last workout (CLI only)")
         print("49) Show clients needing attention (CLI only)")
+        print("50) Suggest next coaching step (CLI only)")
+
+
 
         choice = input("Choose: ").strip()
 
@@ -1445,6 +1487,11 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 3.")
 
         show_clients_needing_attention(threshold)
+    elif command == "suggest":
+        if len(sys.argv) < 3:
+            print("Usage: suggest CLIENT_NAME")
+            return
+        suggest_next_step(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
