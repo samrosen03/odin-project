@@ -85,6 +85,31 @@ def show_client_top_exercise(client_name):
     print(f"\n🏆 TOP EXERCISE — {client_name}\n")
     print(f"{top_ex} → {top_reps} reps")
 
+def search_client_history(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    # sort by date (newest first)
+    client_entries = sorted(client_entries, key=lambda e: e["date"], reverse=True)
+
+    print(f"\n📜 WORKOUT HISTORY — {client_name}\n")
+
+    for e in client_entries:
+        date = e["date"].date()
+        exercise = e["exercise"]
+        reps = e["reps"]
+        print(f"{date} → {exercise} ({reps} reps)")
+
 def compare_clients(client1, client2):
     entries = get_entries_or_warn()
     if not entries:
@@ -1196,6 +1221,7 @@ compare NAME1 NAME2      → Compare two clients
 last-workout NAME        → Show most recent workout for a client
 needs-attention          → Show clients inactive beyond threshold
 suggest NAME             → Suggest next coaching step for a client
+search-client NAME       → Search workout history for a client
 """)
 
 
@@ -1249,9 +1275,8 @@ def menu():
         "47": lambda: print("Use CLI: compare CLIENT_NAME1 CLIENT_NAME2"),
         "48": lambda: print("Use CLI: last-workout CLIENT_NAME"),
         "49": lambda: print("Use CLI: needs-attention"),
-        "50": lambda: print("Use CLI: suggest CLIENT_NAME")
-
-
+        "50": lambda: print("Use CLI: suggest CLIENT_NAME"),
+        "51": lambda: print("Use CLI: search-client CLIENT_NAME")
     }
 
     while True:
@@ -1306,8 +1331,7 @@ def menu():
         print("48) Show last workout (CLI only)")
         print("49) Show clients needing attention (CLI only)")
         print("50) Suggest next coaching step (CLI only)")
-
-
+        print("51) Search client workout history (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1492,6 +1516,11 @@ def run_cli_mode(command):
             print("Usage: suggest CLIENT_NAME")
             return
         suggest_next_step(sys.argv[2])
+    elif command == "search-client":
+        if len(sys.argv) < 3:
+            print("Usage: search-client CLIENT_NAME")
+            return
+        search_client_history(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
