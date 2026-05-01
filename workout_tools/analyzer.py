@@ -61,6 +61,27 @@ def show_recent_workouts(limit=5):
         reps = entry["reps"]
         print(f"{date} → {client} | {exercise} | {reps} reps")
 
+def show_top_day_of_week():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    day_totals = defaultdict(int)
+
+    for e in entries:
+        day_name = e["date"].strftime("%A")  # Monday, Tuesday, etc.
+        day_totals[day_name] += e["reps"]
+
+    if not day_totals:
+        print("No data available.")
+        return
+
+    top_day = max(day_totals, key=day_totals.get)
+    top_reps = day_totals[top_day]
+
+    print("\n🏆 TOP WORKOUT DAY\n")
+    print(f"{top_day} → {top_reps} reps")
+
 def show_client_top_exercise(client_name):
     entries = get_entries_or_warn()
     if not entries:
@@ -1222,6 +1243,7 @@ last-workout NAME        → Show most recent workout for a client
 needs-attention          → Show clients inactive beyond threshold
 suggest NAME             → Suggest next coaching step for a client
 search-client NAME       → Search workout history for a client
+top-day                  → Show highest performing workout day
 """)
 
 
@@ -1276,7 +1298,8 @@ def menu():
         "48": lambda: print("Use CLI: last-workout CLIENT_NAME"),
         "49": lambda: print("Use CLI: needs-attention"),
         "50": lambda: print("Use CLI: suggest CLIENT_NAME"),
-        "51": lambda: print("Use CLI: search-client CLIENT_NAME")
+        "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
+        "52": show_top_day_of_week
     }
 
     while True:
@@ -1332,6 +1355,7 @@ def menu():
         print("49) Show clients needing attention (CLI only)")
         print("50) Suggest next coaching step (CLI only)")
         print("51) Search client workout history (CLI only)")
+        print("52) Show top workout day of week (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1521,6 +1545,8 @@ def run_cli_mode(command):
             print("Usage: search-client CLIENT_NAME")
             return
         search_client_history(sys.argv[2])
+    elif command == "top-day":
+        show_top_day_of_week()
     else:
         print("Unknown command. Try: help")
 
