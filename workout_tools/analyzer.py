@@ -312,6 +312,35 @@ def show_high_value_clients():
     for i, (client, reps) in enumerate(ranked[:5], start=1):
         print(f"{i}. {client} → {reps} reps | {sessions[client]} sessions")
 
+def export_client_csv(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    os.makedirs("reports", exist_ok=True)
+
+    filename = f"reports/{client_name.lower()}_workouts.csv"
+
+    with open(filename, "w") as f:
+        f.write("date,exercise,reps\n")
+
+        for e in client_entries:
+            date = e["date"].date()
+            exercise = e["exercise"]
+            reps = e["reps"]
+            f.write(f"{date},{exercise},{reps}\n")
+
+    print(f"\n📁 Exported to {filename}")
+
 def show_client_streak(client_name):
     entries = get_entries_or_warn()
     if not entries:
@@ -1244,6 +1273,7 @@ needs-attention          → Show clients inactive beyond threshold
 suggest NAME             → Suggest next coaching step for a client
 search-client NAME       → Search workout history for a client
 top-day                  → Show highest performing workout day
+export-client NAME       → Export a client's workouts to CSV
 """)
 
 
@@ -1299,7 +1329,8 @@ def menu():
         "49": lambda: print("Use CLI: needs-attention"),
         "50": lambda: print("Use CLI: suggest CLIENT_NAME"),
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
-        "52": show_top_day_of_week
+        "52": show_top_day_of_week,
+        "53": lambda: print("Use CLI: export-client CLIENT_NAME")
     }
 
     while True:
@@ -1356,6 +1387,7 @@ def menu():
         print("50) Suggest next coaching step (CLI only)")
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
+        print("53) Export client workouts (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1547,6 +1579,11 @@ def run_cli_mode(command):
         search_client_history(sys.argv[2])
     elif command == "top-day":
         show_top_day_of_week()
+    elif command == "export-client":
+        if len(sys.argv) < 3:
+            print("Usage: export-client CLIENT_NAME")
+            return
+        export_client_csv(sys.argv[2])
     else:
         print("Unknown command. Try: help")
 
