@@ -45,6 +45,46 @@ def show_top_client_this_month():
     print("\n🏆 TOP CLIENT THIS MONTH\n")
     for i, (client, reps) in enumerate(ranked, start=1):
         print(f"{i}. {client} → {reps} reps")
+    
+    def generate_weekly_client_message(client_name):
+        entries = get_entries_or_warn()
+        if not entries:
+            return
+    
+        today = datetime.now()
+        week_ago = today - timedelta(days=7)
+    
+        client_entries = [
+            e for e in entries
+            if e.get("client", "").lower() == client_name.lower()
+        ]
+    
+        if not client_entries:
+            print(f"No data found for {client_name}")
+            return
+    
+        weekly_entries = [e for e in client_entries if e["date"] >= week_ago]
+    
+        total_reps = sum(e["reps"] for e in weekly_entries)
+        days = {e["date"].date() for e in weekly_entries}
+    
+        last_date = max(e["date"] for e in client_entries)
+        days_off = (today - last_date).days
+    
+        print(f"\n📩 WEEKLY MESSAGE — {client_name}\n")
+    
+        # Message logic
+        if days_off >= 5:
+            msg = f"Hey {client_name} — haven’t seen you in a bit. Let’s get back into it this week 💪"
+        elif len(days) >= 4:
+            msg = f"{client_name}, great consistency this week. Let’s keep building 🔥"
+        elif len(days) >= 2:
+            msg = f"{client_name}, solid work this week. Let’s aim for one more session 💪"
+        else:
+            msg = f"{client_name}, let’s lock back in this week. Small wins add up."
+    
+        print(msg)
+        print(f"\n👉 COPY & SEND: {msg}")
 
 def show_recent_workouts(limit=5):
     entries = get_entries_or_warn()
