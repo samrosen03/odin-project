@@ -412,6 +412,13 @@ def show_client_streak(client_name):
     print(f"Current/Recent Streak: {streak} days")
     print(f"Longest Streak: {longest} days")
 
+def show_total_workouts():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    print(f"\n📊 TOTAL WORKOUTS: {len(entries)}")
+
 def show_client_revenue(rate_per_session=75):
     entries = get_entries_or_warn()
     if not entries:
@@ -1314,6 +1321,7 @@ suggest NAME             → Suggest next coaching step for a client
 search-client NAME       → Search workout history for a client
 top-day                  → Show highest performing workout day
 export-client NAME       → Export a client's workouts to CSV
+count                    → Show total workouts logged
 """)
 
 
@@ -1370,7 +1378,8 @@ def menu():
         "50": lambda: print("Use CLI: suggest CLIENT_NAME"),
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
-        "53": lambda: print("Use CLI: export-client CLIENT_NAME")
+        "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "count": show_total_workouts
     }
 
     while True:
@@ -1428,6 +1437,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("count) Show total workouts (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1624,6 +1634,8 @@ def run_cli_mode(command):
             print("Usage: export-client CLIENT_NAME")
             return
         export_client_csv(sys.argv[2])
+    elif command == "count":
+        show_total_workouts()
     else:
         print("Unknown command. Try: help")
 
