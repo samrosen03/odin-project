@@ -122,6 +122,16 @@ def show_top_day_of_week():
     print("\n🏆 TOP WORKOUT DAY\n")
     print(f"{top_day} → {top_reps} reps")
 
+def show_latest_workout():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    latest = max(entries, key=lambda e: e["date"])
+
+    print("\n🕒 LATEST WORKOUT\n")
+    print(f"{latest['date'].date()} → {latest['exercise']} ({latest['reps']} reps)")
+
 def show_client_top_exercise(client_name):
     entries = get_entries_or_warn()
     if not entries:
@@ -1322,6 +1332,7 @@ search-client NAME       → Search workout history for a client
 top-day                  → Show highest performing workout day
 export-client NAME       → Export a client's workouts to CSV
 count                    → Show total workouts logged
+latest                   → Show most recent workout
 """)
 
 
@@ -1379,7 +1390,9 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "latest": show_latest_workout,
         "count": show_total_workouts
+
     }
 
     while True:
@@ -1438,6 +1451,8 @@ def menu():
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
         print("count) Show total workouts (CLI only)")
+        print("latest) Show most recent workout (CLI only)")
+        print("repeat) Repeat last command (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1629,17 +1644,21 @@ def run_cli_mode(command):
         search_client_history(sys.argv[2])
     elif command == "top-day":
         show_top_day_of_week()
+
     elif command == "export-client":
         if len(sys.argv) < 3:
             print("Usage: export-client CLIENT_NAME")
             return
         export_client_csv(sys.argv[2])
+
     elif command == "count":
         show_total_workouts()
+
+    elif command == "latest":
+        show_latest_workout()
+
     else:
         print("Unknown command. Try: help")
-
-
 def main():
     if len(sys.argv) > 1:
         run_cli_mode(sys.argv[1])
