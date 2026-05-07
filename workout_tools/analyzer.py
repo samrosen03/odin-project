@@ -86,6 +86,15 @@ def show_top_client_this_month():
         print(msg)
         print(f"\n👉 COPY & SEND: {msg}")
 
+def show_exercise_count():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    exercises = {e["exercise"] for e in entries}
+
+    print(f"\n🏋️ TOTAL EXERCISES: {len(exercises)}")
+
 def show_recent_workouts(limit=5):
     entries = get_entries_or_warn()
     if not entries:
@@ -1333,6 +1342,7 @@ top-day                  → Show highest performing workout day
 export-client NAME       → Export a client's workouts to CSV
 count                    → Show total workouts logged
 latest                   → Show most recent workout
+exercise-count           → Show total unique exercises
 """)
 
 
@@ -1390,6 +1400,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "exercise-count": show_exercise_count,
         "latest": show_latest_workout,
         "count": show_total_workouts
 
@@ -1453,6 +1464,7 @@ def menu():
         print("count) Show total workouts (CLI only)")
         print("latest) Show most recent workout (CLI only)")
         print("repeat) Repeat last command (CLI only)")
+        print("exercise-count) Show total unique exercises (CLI only)")
 
         choice = input("Choose: ").strip()
 
@@ -1657,8 +1669,12 @@ def run_cli_mode(command):
     elif command == "latest":
         show_latest_workout()
 
+    elif command == "exercise-count":
+        show_exercise_count()
+
     else:
         print("Unknown command. Try: help")
+    
 def main():
     if len(sys.argv) > 1:
         run_cli_mode(sys.argv[1])
