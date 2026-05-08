@@ -86,6 +86,22 @@ def show_top_client_this_month():
         print(msg)
         print(f"\n👉 COPY & SEND: {msg}")
 
+def show_heaviest_day():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    daily_totals = defaultdict(int)
+
+    for e in entries:
+        day = e["date"].date()
+        daily_totals[day] += e["reps"]
+
+    top_day = max(daily_totals, key=daily_totals.get)
+
+    print("\n💥 HEAVIEST DAY\n")
+    print(f"{top_day} → {daily_totals[top_day]} total reps")
+
 def show_exercise_count():
     entries = get_entries_or_warn()
     if not entries:
@@ -1343,6 +1359,7 @@ export-client NAME       → Export a client's workouts to CSV
 count                    → Show total workouts logged
 latest                   → Show most recent workout
 exercise-count           → Show total unique exercises
+heaviest-day             → Show highest total rep day
 """)
 
 
@@ -1400,6 +1417,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "heaviest-day": show_heaviest_day,
         "exercise-count": show_exercise_count,
         "latest": show_latest_workout,
         "count": show_total_workouts
@@ -1465,6 +1483,10 @@ def menu():
         print("latest) Show most recent workout (CLI only)")
         print("repeat) Repeat last command (CLI only)")
         print("exercise-count) Show total unique exercises (CLI only)")
+        print("heaviest-day) Show highest total rep day (CLI only)")
+
+
+    
 
         choice = input("Choose: ").strip()
 
@@ -1644,6 +1666,9 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 3.")
 
         show_clients_needing_attention(threshold)
+    elif command == "heaviest-day":
+        show_heaviest_day()
+    
     elif command == "suggest":
         if len(sys.argv) < 3:
             print("Usage: suggest CLIENT_NAME")
