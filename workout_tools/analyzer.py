@@ -86,6 +86,22 @@ def show_top_client_this_month():
         print(msg)
         print(f"\n👉 COPY & SEND: {msg}")
 
+def show_top_client():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    totals = defaultdict(int)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        totals[client] += e["reps"]
+
+    top_client = max(totals, key=totals.get)
+
+    print("\n🏆 TOP CLIENT\n")
+    print(f"{top_client} → {totals[top_client]} reps")
+
 def show_heaviest_day():
     entries = get_entries_or_warn()
     if not entries:
@@ -1360,6 +1376,7 @@ count                    → Show total workouts logged
 latest                   → Show most recent workout
 exercise-count           → Show total unique exercises
 heaviest-day             → Show highest total rep day
+top-client               → Show top client by total reps
 """)
 
 
@@ -1696,6 +1713,9 @@ def run_cli_mode(command):
 
     elif command == "exercise-count":
         show_exercise_count()
+
+    elif command == "top-client":
+        show_top_client()
 
     else:
         print("Unknown command. Try: help")
