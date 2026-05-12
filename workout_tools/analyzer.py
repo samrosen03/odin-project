@@ -689,6 +689,15 @@ def export_report():
 
     print("📄 Report saved to reports/workout_report.txt")
 
+def show_average_workout():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    avg = sum(e["reps"] for e in entries) / len(entries)
+
+    print("\n📊 AVERAGE WORKOUT ENTRY\n")
+    print(f"{avg:.1f} reps per workout")
 
 def export_csv():
     entries = get_entries_or_warn()
@@ -1377,6 +1386,7 @@ latest                   → Show most recent workout
 exercise-count           → Show total unique exercises
 heaviest-day             → Show highest total rep day
 top-client               → Show top client by total reps
+average-workout          → Show average workout entry
 """)
 
 
@@ -1434,6 +1444,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "average-workout": show_average_workout,
         "heaviest-day": show_heaviest_day,
         "exercise-count": show_exercise_count,
         "latest": show_latest_workout,
@@ -1501,6 +1512,7 @@ def menu():
         print("repeat) Repeat last command (CLI only)")
         print("exercise-count) Show total unique exercises (CLI only)")
         print("heaviest-day) Show highest total rep day (CLI only)")
+        print("average-workout) Show average workout entry (CLI only)")
 
 
     
@@ -1704,6 +1716,9 @@ def run_cli_mode(command):
             print("Usage: export-client CLIENT_NAME")
             return
         export_client_csv(sys.argv[2])
+
+    elif command == "avg-workout":
+        show_average_workout()
 
     elif command == "count":
         show_total_workouts()
