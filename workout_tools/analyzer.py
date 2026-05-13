@@ -769,6 +769,22 @@ def show_dashboard():
     print(f"Workout Days Logged: {consistency}")
     print(f"Longest Streak: {streak} days")
 
+def show_top_week():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    week_ago = datetime.now() - timedelta(days=7)
+
+    weekly = [
+        e for e in entries
+        if e["date"] >= week_ago
+    ]
+
+    total = sum(e["reps"] for e in weekly)
+
+    print("\n🔥 LAST 7 DAYS\n")
+    print(f"Total Reps: {total}")
 
 def show_monthly_reps():
     results = get_monthly_reps()
@@ -1387,6 +1403,7 @@ exercise-count           → Show total unique exercises
 heaviest-day             → Show highest total rep day
 top-client               → Show top client by total reps
 average-workout          → Show average workout entry
+top-week                → Show reps from last 7 days
 """)
 
 
@@ -1444,6 +1461,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "top-week": show_top_week,
         "average-workout": show_average_workout,
         "heaviest-day": show_heaviest_day,
         "exercise-count": show_exercise_count,
@@ -1513,6 +1531,7 @@ def menu():
         print("exercise-count) Show total unique exercises (CLI only)")
         print("heaviest-day) Show highest total rep day (CLI only)")
         print("average-workout) Show average workout entry (CLI only)")
+        print("top-week) Show reps from last 7 days (CLI only)")
 
 
     
@@ -1665,6 +1684,8 @@ def run_cli_mode(command):
             print("Usage: client-summary CLIENT_NAME")
             return
         show_client_summary(sys.argv[2])
+    elif command == "top-week":
+         show_top_week()
     elif command == "top-exercise":
         if len(sys.argv) < 3:
             print("Usage: top-exercise CLIENT_NAME")
