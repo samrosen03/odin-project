@@ -1179,6 +1179,29 @@ def show_weekly_report():
     else:
         print("\n⚠️ Let’s aim for more consistency next week.")
 
+def client_search(term):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    clients = {
+        e.get("client", "Unknown")
+        for e in entries
+    }
+
+    matches = [
+        c for c in clients
+        if term.lower() in c.lower()
+    ]
+
+    if not matches:
+        print("No matching clients.")
+        return
+
+    print("\n🔍 CLIENT MATCHES\n")
+
+    for client in sorted(matches):
+        print(client)
 
 def generate_client_message():
     entries = get_entries_or_warn()
@@ -1404,6 +1427,7 @@ heaviest-day             → Show highest total rep day
 top-client               → Show top client by total reps
 average-workout          → Show average workout entry
 top-week                → Show reps from last 7 days
+client-search NAME       → Search clients by name
 """)
 
 
@@ -1716,6 +1740,12 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 3.")
 
         show_clients_needing_attention(threshold)
+    elif command == "client-search":
+        if len(sys.argv) < 3:
+            print("Usage: client-search NAME")
+            return
+        client_search(sys.argv[2])
+
     elif command == "heaviest-day":
         show_heaviest_day()
     
