@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import random
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -19,6 +20,24 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def random_client():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    clients = list({
+        e.get("client", "Unknown")
+        for e in entries
+    })
+
+    if not clients:
+        print("No clients found.")
+        return
+
+    chosen = random.choice(clients)
+
+    print("\n🎲 RANDOM CLIENT\n")
+    print(chosen)
 
 def show_top_client_this_month():
     entries = get_entries_or_warn()
@@ -1428,6 +1447,7 @@ top-client               → Show top client by total reps
 average-workout          → Show average workout entry
 top-week                → Show reps from last 7 days
 client-search NAME       → Search clients by name
+random-client            → Pick a random client
 """)
 
 
@@ -1485,6 +1505,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "random-client": random_client,
         "top-week": show_top_week,
         "average-workout": show_average_workout,
         "heaviest-day": show_heaviest_day,
@@ -1556,6 +1577,7 @@ def menu():
         print("heaviest-day) Show highest total rep day (CLI only)")
         print("average-workout) Show average workout entry (CLI only)")
         print("top-week) Show reps from last 7 days (CLI only)")
+        print("random-client) Pick a random client (CLI only)")
 
 
     
@@ -1776,6 +1798,9 @@ def run_cli_mode(command):
 
     elif command == "latest":
         show_latest_workout()
+
+    elif command == "random-client":
+        random_client()
 
     elif command == "exercise-count":
         show_exercise_count()
