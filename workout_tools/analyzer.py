@@ -20,6 +20,24 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_top_month():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    today = datetime.now()
+
+    monthly = [
+        e for e in entries
+        if e["date"].month == today.month
+        and e["date"].year == today.year
+    ]
+
+    total = sum(e["reps"] for e in monthly)
+
+    print("\n📅 THIS MONTH\n")
+    print(f"Total Reps: {total}")
+
 def random_client():
     entries = get_entries_or_warn()
     if not entries:
@@ -1448,6 +1466,7 @@ average-workout          → Show average workout entry
 top-week                → Show reps from last 7 days
 client-search NAME       → Search clients by name
 random-client            → Pick a random client
+top-month                → Show reps from this month
 """)
 
 
@@ -1705,6 +1724,8 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
+    elif command == "top-month":
+        show_top_month()
     elif command == "client-count":
         show_client_count()
     elif command == "scorecard":
