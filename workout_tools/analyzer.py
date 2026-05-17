@@ -20,6 +20,19 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_day_count():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    days = {
+        e["date"].date()
+        for e in entries
+    }
+
+    print("\n📆 WORKOUT DAYS\n")
+    print(f"Total Days Logged: {len(days)}")
+
 def show_top_month():
     entries = get_entries_or_warn()
     if not entries:
@@ -1467,6 +1480,7 @@ top-week                → Show reps from last 7 days
 client-search NAME       → Search clients by name
 random-client            → Pick a random client
 top-month                → Show reps from this month
+day-count                 → Show total workout days
 """)
 
 
@@ -1524,6 +1538,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "day-count": show_day_count,
         "random-client": random_client,
         "top-week": show_top_week,
         "average-workout": show_average_workout,
@@ -1597,6 +1612,8 @@ def menu():
         print("average-workout) Show average workout entry (CLI only)")
         print("top-week) Show reps from last 7 days (CLI only)")
         print("random-client) Pick a random client (CLI only)")
+        print("top-month) Show reps from this month (CLI only)")
+        print("day-count) Show total workout days (CLI only)")
 
 
     
@@ -1694,6 +1711,8 @@ def run_cli_mode(command):
         if len(sys.argv) > 3:
             client = sys.argv[3]
         show_stats(exercise, client)
+    elif command == "day-count":
+        show_day_count()
     elif command == "weekly":
         show_weekly_report()
     elif command == "range":
