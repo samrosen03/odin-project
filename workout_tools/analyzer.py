@@ -847,6 +847,20 @@ def show_monthly_reps():
     for month, total in results.items():
         print(f"{month}: {total}")
 
+def show_exercise_list():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    exercises = sorted({
+        e["exercise"]
+        for e in entries
+    })
+
+    print("\n🏋️ EXERCISE LIST\n")
+
+    for ex in exercises:
+        print(f"- {ex}")
 
 def show_stats(exercise=None, client=None):
     entries = get_entries_or_warn()
@@ -1481,6 +1495,7 @@ client-search NAME       → Search clients by name
 random-client            → Pick a random client
 top-month                → Show reps from this month
 day-count                 → Show total workout days
+exercise-list             → Show all unique exercises
 """)
 
 
@@ -1538,6 +1553,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "exercise-list": show_exercise_list,
         "day-count": show_day_count,
         "random-client": random_client,
         "top-week": show_top_week,
@@ -1614,6 +1630,7 @@ def menu():
         print("random-client) Pick a random client (CLI only)")
         print("top-month) Show reps from this month (CLI only)")
         print("day-count) Show total workout days (CLI only)")
+        print("exercise-list) Show all unique exercises (CLI only)")
 
 
     
@@ -1770,6 +1787,8 @@ def run_cli_mode(command):
             print("Usage: client-summary CLIENT_NAME")
             return
         show_client_summary(sys.argv[2])
+    elif command == "exercise-list":
+         show_exercise_list()
     elif command == "top-week":
          show_top_week()
     elif command == "top-exercise":
