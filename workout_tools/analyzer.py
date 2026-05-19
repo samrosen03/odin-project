@@ -20,6 +20,30 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def exercise_search(term):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    exercises = {
+        e["exercise"]
+        for e in entries
+    }
+
+    matches = [
+        ex for ex in exercises
+        if term.lower() in ex.lower()
+    ]
+
+    if not matches:
+        print("No matching exercises.")
+        return
+
+    print("\n🔍 EXERCISE MATCHES\n")
+
+    for ex in sorted(matches):
+        print(ex)
+
 def show_day_count():
     entries = get_entries_or_warn()
     if not entries:
@@ -1496,6 +1520,7 @@ random-client            → Pick a random client
 top-month                → Show reps from this month
 day-count                 → Show total workout days
 exercise-list             → Show all unique exercises
+exercise-search NAME    → Search exercises by keyword
 """)
 
 
@@ -1553,6 +1578,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "exercise-search": exercise_search,
         "exercise-list": show_exercise_list,
         "day-count": show_day_count,
         "random-client": random_client,
@@ -1620,6 +1646,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("exercise-search) Search exercises by keyword (CLI only)")
         print("count) Show total workouts (CLI only)")
         print("latest) Show most recent workout (CLI only)")
         print("repeat) Repeat last command (CLI only)")
@@ -1655,6 +1682,8 @@ def run_cli_mode(command):
 
     if command == "total":
         total_reps_by_exercise(entries)
+    elif command == "exercise-search":
+        exercise_search(sys.argv[2])
     elif command == "daily":
         reps_by_day(entries)
     elif command == "top-client-week":
