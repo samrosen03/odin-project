@@ -20,6 +20,21 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_exercise_frequency():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    counts = defaultdict(int)
+
+    for e in entries:
+        counts[e["exercise"]] += 1
+
+    print("\n📊 EXERCISE FREQUENCY\n")
+
+    for ex, count in sorted(counts.items(), key=lambda x: x[1], reverse=True):
+        print(f"{ex} → {count} workouts")
+
 def exercise_search(term):
     entries = get_entries_or_warn()
     if not entries:
@@ -1521,6 +1536,7 @@ top-month                → Show reps from this month
 day-count                 → Show total workout days
 exercise-list             → Show all unique exercises
 exercise-search NAME    → Search exercises by keyword
+exercise-frequency      → Show workout count per exercise
 """)
 
 
@@ -1578,6 +1594,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "exercise-frequency": show_exercise_frequency,
         "exercise-search": exercise_search,
         "exercise-list": show_exercise_list,
         "day-count": show_day_count,
@@ -1646,6 +1663,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("exercise-frequency) Show workout count per exercise (CLI only)")
         print("exercise-search) Search exercises by keyword (CLI only)")
         print("count) Show total workouts (CLI only)")
         print("latest) Show most recent workout (CLI only)")
@@ -1700,6 +1718,8 @@ def run_cli_mode(command):
         show_consistency_score()
     elif command == "streak":
         show_longest_streak()
+    elif command == "exercise-frequency":
+        show_exercise_frequency()
     elif command == "search":
         search_exercise_history()
     elif command == "top":
