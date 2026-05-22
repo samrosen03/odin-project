@@ -20,6 +20,21 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_exercise_days():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    exercise_days = defaultdict(set)
+
+    for e in entries:
+        exercise_days[e["exercise"]].add(e["date"].date())
+
+    print("\n📆 EXERCISE DAY COUNT\n")
+
+    for ex, days in sorted(exercise_days.items()):
+        print(f"{ex} → {len(days)} days")
+
 def show_most_active_client():
     entries = get_entries_or_warn()
     if not entries:
@@ -1554,6 +1569,7 @@ exercise-list             → Show all unique exercises
 exercise-search NAME    → Search exercises by keyword
 exercise-frequency      → Show workout count per exercise
 most-active-client      → Show client with most workouts
+exercise-days           → Show unique days per exercise
 """)
 
 
@@ -1611,6 +1627,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "exercise-days": show_exercise_days,
         "most-active-client": show_most_active_client,
         "exercise-frequency": show_exercise_frequency,
         "exercise-search": exercise_search,
@@ -1681,6 +1698,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("exercise-days) Show unique days per exercise (CLI only)")
         print("exercise-frequency) Show workout count per exercise (CLI only)")
         print("exercise-search) Search exercises by keyword (CLI only)")
         print("count) Show total workouts (CLI only)")
@@ -1723,6 +1741,8 @@ def run_cli_mode(command):
         exercise_search(sys.argv[2])
     elif command == "most-active-client":
         show_most_active_client()
+    elif command == "exercise-days":
+         show_exercise_days()
     elif command == "daily":
         reps_by_day(entries)
     elif command == "top-client-week":
