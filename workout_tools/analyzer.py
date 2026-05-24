@@ -20,6 +20,22 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_client_days():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_days = defaultdict(set)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+        client_days[client].add(e["date"].date())
+
+    print("\n📆 CLIENT DAY COUNT\n")
+
+    for client, days in sorted(client_days.items()):
+        print(f"{client} → {len(days)} days")
+
 def show_exercise_days():
     entries = get_entries_or_warn()
     if not entries:
@@ -1570,6 +1586,7 @@ exercise-search NAME    → Search exercises by keyword
 exercise-frequency      → Show workout count per exercise
 most-active-client      → Show client with most workouts
 exercise-days           → Show unique days per exercise
+client-days             → Show workout days per client
 """)
 
 
@@ -1627,6 +1644,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "client-days": show_client_days,
         "exercise-days": show_exercise_days,
         "most-active-client": show_most_active_client,
         "exercise-frequency": show_exercise_frequency,
@@ -1698,6 +1716,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("client-days) Show workout days per client (CLI only)")
         print("exercise-days) Show unique days per exercise (CLI only)")
         print("exercise-frequency) Show workout count per exercise (CLI only)")
         print("exercise-search) Search exercises by keyword (CLI only)")
@@ -1739,6 +1758,8 @@ def run_cli_mode(command):
         total_reps_by_exercise(entries)
     elif command == "exercise-search":
         exercise_search(sys.argv[2])
+    elif command == "client-days":
+        show_client_days()
     elif command == "most-active-client":
         show_most_active_client()
     elif command == "exercise-days":
