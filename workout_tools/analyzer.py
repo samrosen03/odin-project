@@ -20,6 +20,26 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_client_averages():
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    totals = defaultdict(int)
+    counts = defaultdict(int)
+
+    for e in entries:
+        client = e.get("client", "Unknown")
+
+        totals[client] += e["reps"]
+        counts[client] += 1
+
+    print("\n📊 CLIENT AVERAGES\n")
+
+    for client in sorted(totals):
+        avg = totals[client] / counts[client]
+        print(f"{client} → {avg:.1f} avg reps")
+
 def show_client_days():
     entries = get_entries_or_warn()
     if not entries:
@@ -1587,6 +1607,7 @@ exercise-frequency      → Show workout count per exercise
 most-active-client      → Show client with most workouts
 exercise-days           → Show unique days per exercise
 client-days             → Show workout days per client
+client-average          → Show average reps per client
 """)
 
 
@@ -1644,6 +1665,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "client-average": show_client_averages,
         "client-days": show_client_days,
         "exercise-days": show_exercise_days,
         "most-active-client": show_most_active_client,
@@ -1716,6 +1738,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("client-average) Show average reps per client (CLI only)")
         print("client-days) Show workout days per client (CLI only)")
         print("exercise-days) Show unique days per exercise (CLI only)")
         print("exercise-frequency) Show workout count per exercise (CLI only)")
@@ -1873,6 +1896,8 @@ def run_cli_mode(command):
         check_inactivity(threshold)
     elif command == "top-month":
         show_top_month()
+    elif command == "client-average":
+        show_client_averages()
     elif command == "client-count":
         show_client_count()
     elif command == "scorecard":
