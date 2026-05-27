@@ -20,6 +20,25 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_top_exercise_day(exercise_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    matches = [
+        e for e in entries
+        if e["exercise"].lower() == exercise_name.lower()
+    ]
+
+    if not matches:
+        print(f"No data found for {exercise_name}")
+        return
+
+    top = max(matches, key=lambda e: e["reps"])
+
+    print(f"\n🏆 TOP {exercise_name.upper()} DAY\n")
+    print(f"{top['date'].date()} → {top['reps']} reps")
+
 def show_exercise_averages():
     entries = get_entries_or_warn()
     if not entries:
@@ -1629,6 +1648,7 @@ exercise-days           → Show unique days per exercise
 client-days             → Show workout days per client
 client-average          → Show average reps per client
 exercise-averages       → Show average reps per exercise
+top-exercise-day NAME   → Show best day for an exercise
 """)
 
 
@@ -1686,6 +1706,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "top-exercise-day": show_top_exercise_day,
         "exercise-averages": show_exercise_averages,
         "client-average": show_client_averages,
         "client-days": show_client_days,
@@ -1760,6 +1781,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("top-exercise-day) Show best day for an exercise (CLI only)")
         print("exercise-averages) Show average reps per exercise (CLI only)")
         print("client-average) Show average reps per client (CLI only)")
         print("client-days) Show workout days per client (CLI only)")
@@ -1919,6 +1941,12 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
+    elif command == "top-exercise-day":
+        if len(sys.argv) < 3:
+            print("Usage: top-exercise-day EXERCISE")
+            return
+
+        show_top_exercise_day(sys.argv[2])
     elif command == "top-month":
         show_top_month()
     elif command == "client-average":
