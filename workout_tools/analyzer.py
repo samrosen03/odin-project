@@ -20,6 +20,25 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_client_first_workout(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    first = min(client_entries, key=lambda e: e["date"])
+
+    print(f"\n🎉 FIRST WORKOUT — {client_name}\n")
+    print(f"{first['date'].date()}")
+
 def show_client_exercises(client_name):
     entries = get_entries_or_warn()
     if not entries:
@@ -1675,6 +1694,7 @@ client-average          → Show average reps per client
 exercise-averages       → Show average reps per exercise
 top-exercise-day NAME   → Show best day for an exercise
 client-exercises NAME   → Show exercises for a client
+client-first NAME       → Show first workout date for a client
 """)
 
 
@@ -1732,6 +1752,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "client-first": show_client_first_workout,
         "client-exercises": show_client_exercises,
         "top-exercise-day": show_top_exercise_day,
         "exercise-averages": show_exercise_averages,
@@ -1808,6 +1829,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("client-first) Show first workout for a client (CLI only)")
         print("client-exercises) Show exercises for a client (CLI only)")
         print("top-exercise-day) Show best day for an exercise (CLI only)")
         print("exercise-averages) Show average reps per exercise (CLI only)")
@@ -1890,6 +1912,12 @@ def run_cli_mode(command):
             except ValueError:
                 print("Invalid number. Using default of 3.")
         show_top_exercises(limit)
+    elif command == "client-first":
+       if len(sys.argv) < 3:
+        print("Usage: client-first CLIENT_NAME")
+        return
+
+       show_client_first_workout(sys.argv[2])
     elif command == "inactive":
         if len(sys.argv) < 3:
             print("Usage: inactive CLIENT_NAME")
