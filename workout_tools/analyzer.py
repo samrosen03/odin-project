@@ -20,6 +20,27 @@ from workout_tools.service import (
     get_client_leaderboard,
 )
 
+def show_client_last_workout(client_name):
+    entries = get_entries_or_warn()
+    if not entries:
+        return
+
+    client_entries = [
+        e for e in entries
+        if e.get("client", "").lower() == client_name.lower()
+    ]
+
+    if not client_entries:
+        print(f"No data found for {client_name}")
+        return
+
+    last = max(client_entries, key=lambda e: e["date"])
+    days_ago = (datetime.now() - last["date"]).days
+
+    print(f"\n🕒 LAST WORKOUT — {client_name}\n")
+    print(f"Date: {last['date'].date()}")
+    print(f"{days_ago} day(s) ago")
+
 def show_client_first_workout(client_name):
     entries = get_entries_or_warn()
     if not entries:
@@ -1695,6 +1716,7 @@ exercise-averages       → Show average reps per exercise
 top-exercise-day NAME   → Show best day for an exercise
 client-exercises NAME   → Show exercises for a client
 client-first NAME       → Show first workout date for a client
+client-last NAME        → Show client's last workout date         
 """)
 
 
@@ -1752,6 +1774,7 @@ def menu():
         "51": lambda: print("Use CLI: search-client CLIENT_NAME"),
         "52": show_top_day_of_week,
         "53": lambda: print("Use CLI: export-client CLIENT_NAME"),
+        "client-last": show_client_last_workout,
         "client-first": show_client_first_workout,
         "client-exercises": show_client_exercises,
         "top-exercise-day": show_top_exercise_day,
@@ -1829,6 +1852,7 @@ def menu():
         print("51) Search client workout history (CLI only)")
         print("52) Show top workout day of week (CLI only)")
         print("53) Export client workouts (CLI only)")
+        print("client-last) Show last workout for a client (CLI only)")
         print("client-first) Show first workout for a client (CLI only)")
         print("client-exercises) Show exercises for a client (CLI only)")
         print("top-exercise-day) Show best day for an exercise (CLI only)")
@@ -1913,11 +1937,10 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 3.")
         show_top_exercises(limit)
     elif command == "client-first":
-       if len(sys.argv) < 3:
-        print("Usage: client-first CLIENT_NAME")
-        return
-
-       show_client_first_workout(sys.argv[2])
+        if len(sys.argv) < 3:
+            print("Usage: client-first CLIENT_NAME")
+            return
+        show_client_first_workout(sys.argv[2])
     elif command == "inactive":
         if len(sys.argv) < 3:
             print("Usage: inactive CLIENT_NAME")
@@ -1997,6 +2020,11 @@ def run_cli_mode(command):
                 print("Invalid number. Using default of 2.")
 
         check_inactivity(threshold)
+    elif command == "client-last":
+        if len(sys.argv) < 3:
+            print("Usage: client-last CLIENT_NAME")
+            return
+        show_client_last_workout(sys.argv[2])
     elif command == "top-exercise-day":
         if len(sys.argv) < 3:
             print("Usage: top-exercise-day EXERCISE")
