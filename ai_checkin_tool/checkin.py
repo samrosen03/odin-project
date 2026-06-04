@@ -2,7 +2,10 @@ import json
 import os
 from datetime import datetime
 
-from ai_checkin_tool.feedback import generate_feedback
+from ai_checkin_tool.feedback import (
+    generate_feedback,
+    compare_last_two_checkins,
+)
 
 DATA_FILE = "data/checkins.json"
 
@@ -51,8 +54,10 @@ def create_checkin():
     save_checkins(checkins)
 
     print("\n✅ Check-in saved.")
-    
+
     generate_feedback(checkin)
+    compare_last_two_checkins(checkins)
+
 
 if __name__ == "__main__":
     create_checkin()

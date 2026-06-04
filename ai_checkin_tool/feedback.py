@@ -15,3 +15,24 @@ def generate_feedback(checkin):
 
     print(f"\n🏆 Biggest Win: {checkin['win']}")
     print(f"🎯 Main Focus: {checkin['struggle']}")
+
+
+def compare_last_two_checkins(checkins):
+    if len(checkins) < 2:
+        print("\nNeed at least 2 check-ins to compare trends.")
+        return
+
+    current = checkins[-1]
+    previous = checkins[-2]
+
+    print("\n📈 CHECK-IN TRENDS\n")
+
+    for field in ["energy", "sleep", "nutrition", "stress"]:
+        change = int(current[field]) - int(previous[field])
+
+        if change > 0:
+            print(f"{field.title()}: +{change}")
+        elif change < 0:
+            print(f"{field.title()}: {change}")
+        else:
+            print(f"{field.title()}: No Change")
