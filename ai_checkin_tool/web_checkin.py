@@ -1,13 +1,32 @@
+import json
+import os
+from datetime import datetime
 from flask import Flask, request
 
 app = Flask(__name__)
+DATA_FILE = "data/checkins.json"
+
+
+def load_checkins():
+    if not os.path.exists(DATA_FILE):
+        return []
+
+    with open(DATA_FILE, "r") as f:
+        return json.load(f)
+
+
+def save_checkins(checkins):
+    os.makedirs("data", exist_ok=True)
+
+    with open(DATA_FILE, "w") as f:
+        json.dump(checkins, f, indent=2)
 
 
 @app.route("/")
 def home():
     return """
-    <h1>AI Check-In Tool is running ✅</h1>
-    <p>Go to <a href="/checkin">/checkin</a> to submit a check-in.</p>
+    <h1>Welcome to the AI Fitness Check-In</h1>
+    <p><a href="/checkin">Go to the check-in form</a></p>
     """
 
 
