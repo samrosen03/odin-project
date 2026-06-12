@@ -140,6 +140,39 @@ def checkin():
     </form>
     """
 
+@app.route("/dashboard")
+def dashboard():
+    checkins = load_checkins()
+
+    if not checkins:
+        return """
+        <h1>Coach Dashboard</h1>
+        <p>No check-ins yet.</p>
+        <a href="/checkin">Go to check-in form</a>
+        """
+
+    cards = ""
+
+    for c in reversed(checkins):
+        cards += f"""
+        <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
+            <h2>{c['client']}</h2>
+            <p><strong>Date:</strong> {c['date'][:10]}</p>
+            <p><strong>Weight:</strong> {c['weight']}</p>
+            <p><strong>Energy:</strong> {c['energy']}/10</p>
+            <p><strong>Sleep:</strong> {c['sleep']}/10</p>
+            <p><strong>Nutrition:</strong> {c['nutrition']}/10</p>
+            <p><strong>Stress:</strong> {c['stress']}/10</p>
+            <p><strong>Win:</strong> {c['win']}</p>
+            <p><strong>Struggle:</strong> {c['struggle']}</p>
+        </div>
+        """
+
+    return f"""
+    <h1>Coach Dashboard</h1>
+    <p><a href="/checkin">Submit new check-in</a></p>
+    {cards}
+    """
 
 if __name__ == "__main__":
     app.run(debug=True)
