@@ -1,8 +1,7 @@
 import json
 import os
 from datetime import datetime
-
-from flask import Flask, request
+from flask import Flask, request, url_for
 
 app = Flask(__name__)
 
@@ -156,7 +155,11 @@ def dashboard():
     for c in reversed(checkins):
         cards += f"""
         <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
-            <h2>{c['client']}</h2>
+           <h2>
+    <a href="/client/{c['client']}">
+        {c['client']}
+    </a>
+</h2>
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
             <p><strong>Energy:</strong> {c['energy']}/10</p>
@@ -172,6 +175,41 @@ def dashboard():
     <h1>Coach Dashboard</h1>
     <p><a href="/checkin">Submit new check-in</a></p>
     {cards}
+    """
+@app.route("/client/<client_name>")
+def client_history(client_name):
+    checkins = load_checkins()
+
+    client_checkins = [
+        c for c in checkins
+        if c["client"].lower() == client_name.lower()
+    ]
+
+    if not client_checkins:
+        return f"<h1>No check-ins found for {client_name}</h1>"
+
+    history = ""
+
+    for c in reversed(client_checkins):
+        history += f"""
+        <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
+            <p><strong>Date:</strong> {c['date'][:10]}</p>
+            <p><strong>Weight:</strong> {c['weight']}</p>
+            <p><strong>Energy:</strong> {c['energy']}/10</p>
+            <p><strong>Sleep:</strong> {c['sleep']}/10</p>
+            <p><strong>Nutrition:</strong> {c['nutrition']}/10</p>
+            <p><strong>Stress:</strong> {c['stress']}/10</p>
+            <p><strong>Win:</strong> {c['win']}</p>
+            <p><strong>Struggle:</strong> {c['struggle']}</p>
+        </div>
+        """
+
+    return f"""
+    <h1>{client_name}'s Check-In History</h1>
+
+    <a href="/dashboard">← Back to Dashboard</a>
+
+    {history}
     """
 
 if __name__ == "__main__":
