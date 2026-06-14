@@ -153,13 +153,25 @@ def dashboard():
     cards = ""
 
     for c in reversed(checkins):
+        status = "✅"
+
+        if (
+            int(c["sleep"]) <= 4
+            or int(c["stress"]) >= 8
+            or int(c["energy"]) <= 4
+        ):
+            status = "🚨 Needs Attention"
+
         cards += f"""
         <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
-           <h2>
-    <a href="/client/{c['client']}">
-        {c['client']}
-    </a>
-</h2>
+            <h2>
+                <a href="/client/{c['client']}">
+                    {c['client']}
+                </a>
+            </h2>
+
+            <p><strong>Status:</strong> {status}</p>
+
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
             <p><strong>Energy:</strong> {c['energy']}/10</p>
