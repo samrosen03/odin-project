@@ -1,7 +1,8 @@
 import json
 import os
 from datetime import datetime
-from flask import Flask, request, url_for
+
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -57,6 +58,7 @@ def home():
     return """
     <h1>AI Check-In Tool is running ✅</h1>
     <p>Go to <a href="/checkin">/checkin</a> to submit a check-in.</p>
+    <p>Go to <a href="/dashboard">/dashboard</a> to view coach dashboard.</p>
     """
 
 
@@ -73,6 +75,7 @@ def checkin():
             "stress": request.form.get("stress"),
             "win": request.form.get("win"),
             "struggle": request.form.get("struggle"),
+            "coach_note": "",
         }
 
         checkins = load_checkins()
@@ -97,14 +100,13 @@ def checkin():
         <hr>
 
         <h2>🤖 Coach Feedback</h2>
-        <ul>
-            {feedback_html}
-        </ul>
+        <ul>{feedback_html}</ul>
 
         <p><strong>Main Focus:</strong> {checkin_data['struggle']}</p>
 
         <br>
-        <a href="/checkin">Submit another check-in</a>
+        <a href="/checkin">Submit another check-in</a><br>
+        <a href="/dashboard">View dashboard</a>
         """
 
     return """
@@ -139,6 +141,7 @@ def checkin():
     </form>
     """
 
+
 @app.route("/dashboard")
 def dashboard():
     checkins = load_checkins()
@@ -152,7 +155,7 @@ def dashboard():
 
     cards = ""
 
-    for c in reversed(checkins):
+    for checkin_id, c in reversed(list(enumerate(checkins))):
         status = "✅"
 
         if (
@@ -171,7 +174,6 @@ def dashboard():
             </h2>
 
             <p><strong>Status:</strong> {status}</p>
-
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
             <p><strong>Energy:</strong> {c['energy']}/10</p>
@@ -180,6 +182,13 @@ def dashboard():
             <p><strong>Stress:</strong> {c['stress']}/10</p>
             <p><strong>Win:</strong> {c['win']}</p>
             <p><strong>Struggle:</strong> {c['struggle']}</p>
+
+            <p><strong>Coach Note:</strong> {c.get('coach_note', 'None yet')}</p>
+
+            <form method="POST" action="/note/{checkin_id}">
+                <input name="note" placeholder="Add coach note">
+                <button type="submit">Save Note</button>
+            </form>
         </div>
         """
 
@@ -188,12 +197,15 @@ def dashboard():
     <p><a href="/checkin">Submit new check-in</a></p>
     {cards}
     """
+
+
 @app.route("/client/<client_name>")
 def client_history(client_name):
     checkins = load_checkins()
 
     client_checkins = [
-        c for c in checkins
+        (checkin_id, c)
+        for checkin_id, c in enumerate(checkins)
         if c["client"].lower() == client_name.lower()
     ]
 
@@ -202,7 +214,7 @@ def client_history(client_name):
 
     history = ""
 
-    for c in reversed(client_checkins):
+    for checkin_id, c in reversed(client_checkins):
         history += f"""
         <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
             <p><strong>Date:</strong> {c['date'][:10]}</p>
@@ -213,6 +225,13 @@ def client_history(client_name):
             <p><strong>Stress:</strong> {c['stress']}/10</p>
             <p><strong>Win:</strong> {c['win']}</p>
             <p><strong>Struggle:</strong> {c['struggle']}</p>
+
+            <p><strong>Coach Note:</strong> {c.get('coach_note', 'None yet')}</p>
+
+            <form method="POST" action="/note/{checkin_id}">
+                <input name="note" placeholder="Add coach note">
+                <button type="submit">Save Note</button>
+            </form>
         </div>
         """
 
@@ -223,6 +242,25 @@ def client_history(client_name):
 
     {history}
     """
+
+
+@app.route("/note/<int:checkin_id>", methods=["POST"])
+def add_note(checkin_id):
+    checkins = load_checkins()
+
+    if checkin_id < 0 or checkin_id >= len(checkins):
+        return "Check-in not found."
+
+    note = request.form.get("note")
+    checkins[checkin_id]["coach_note"] = note
+
+    save_checkins(checkins)
+
+    return """
+    <h1>Coach Note Saved ✅</h1>
+    <a href="/dashboard">Back to Dashboard</a>
+    """
+
 
 if __name__ == "__main__":
     app.run(debug=True)
