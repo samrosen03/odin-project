@@ -53,6 +53,27 @@ def generate_coach_feedback(checkin):
     return feedback
 
 
+def build_trend_html(current, previous):
+    if not previous:
+        return ""
+
+    metrics = ["energy", "sleep", "nutrition", "stress"]
+    trend_html = "<h4>📈 Progress Since Last Check-In</h4><ul>"
+
+    for metric in metrics:
+        diff = int(current[metric]) - int(previous[metric])
+
+        if diff > 0:
+            trend_html += f"<li>{metric.title()}: +{diff}</li>"
+        elif diff < 0:
+            trend_html += f"<li>{metric.title()}: {diff}</li>"
+        else:
+            trend_html += f"<li>{metric.title()}: No Change</li>"
+
+    trend_html += "</ul>"
+    return trend_html
+
+
 @app.route("/")
 def home():
     return """
@@ -213,8 +234,11 @@ def client_history(client_name):
         return f"<h1>No check-ins found for {client_name}</h1>"
 
     history = ""
+    previous = None
 
     for checkin_id, c in reversed(client_checkins):
+        trend_html = build_trend_html(c, previous)
+
         history += f"""
         <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
             <p><strong>Date:</strong> {c['date'][:10]}</p>
@@ -226,6 +250,8 @@ def client_history(client_name):
             <p><strong>Win:</strong> {c['win']}</p>
             <p><strong>Struggle:</strong> {c['struggle']}</p>
 
+            {trend_html}
+
             <p><strong>Coach Note:</strong> {c.get('coach_note', 'None yet')}</p>
 
             <form method="POST" action="/note/{checkin_id}">
@@ -234,6 +260,8 @@ def client_history(client_name):
             </form>
         </div>
         """
+
+        previous = c
 
     return f"""
     <h1>{client_name}'s Check-In History</h1>
