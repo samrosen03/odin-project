@@ -7,6 +7,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 DATA_FILE = "data/checkins.json"
+COACH_PASSWORD = "coach123"
 
 
 def load_checkins():
@@ -22,6 +23,14 @@ def save_checkins(checkins):
 
     with open(DATA_FILE, "w") as f:
         json.dump(checkins, f, indent=2)
+
+
+def is_coach_logged_in():
+    return request.args.get("password") == COACH_PASSWORD
+
+
+def coach_dashboard_link():
+    return f"/dashboard?password={COACH_PASSWORD}"
 
 
 def generate_coach_feedback(checkin):
@@ -127,7 +136,7 @@ def checkin():
 
         <br>
         <a href="/checkin">Submit another check-in</a><br>
-        <a href="/dashboard">View dashboard</a>
+        <a href="{coach_dashboard_link()}">View dashboard</a>
         """
 
     return """
@@ -165,10 +174,19 @@ def checkin():
 
 @app.route("/dashboard")
 def dashboard():
+    if not is_coach_logged_in():
+        return """
+        <h1>Coach Login</h1>
+        <form method="GET" action="/dashboard">
+            <input name="password" type="password" placeholder="Coach password">
+            <button type="submit">Login</button>
+        </form>
+        """
+
     checkins = load_checkins()
 
     if not checkins:
-        return """
+        return f"""
         <h1>Coach Dashboard</h1>
         <p>No check-ins yet.</p>
         <a href="/checkin">Go to check-in form</a>
@@ -189,7 +207,7 @@ def dashboard():
         cards += f"""
         <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
             <h2>
-                <a href="/client/{c['client']}">
+                <a href="/client/{c['client']}?password={COACH_PASSWORD}">
                     {c['client']}
                 </a>
             </h2>
@@ -206,7 +224,7 @@ def dashboard():
 
             <p><strong>Coach Note:</strong> {c.get('coach_note', 'None yet')}</p>
 
-            <form method="POST" action="/note/{checkin_id}">
+            <form method="POST" action="/note/{checkin_id}?password={COACH_PASSWORD}">
                 <input name="note" placeholder="Add coach note">
                 <button type="submit">Save Note</button>
             </form>
@@ -222,6 +240,15 @@ def dashboard():
 
 @app.route("/client/<client_name>")
 def client_history(client_name):
+    if not is_coach_logged_in():
+        return """
+        <h1>Coach Login</h1>
+        <form method="GET">
+            <input name="password" type="password" placeholder="Coach password">
+            <button type="submit">Login</button>
+        </form>
+        """
+
     checkins = load_checkins()
 
     client_checkins = [
@@ -254,7 +281,7 @@ def client_history(client_name):
 
             <p><strong>Coach Note:</strong> {c.get('coach_note', 'None yet')}</p>
 
-            <form method="POST" action="/note/{checkin_id}">
+            <form method="POST" action="/note/{checkin_id}?password={COACH_PASSWORD}">
                 <input name="note" placeholder="Add coach note">
                 <button type="submit">Save Note</button>
             </form>
@@ -266,7 +293,7 @@ def client_history(client_name):
     return f"""
     <h1>{client_name}'s Check-In History</h1>
 
-    <a href="/dashboard">← Back to Dashboard</a>
+    <a href="{coach_dashboard_link()}">← Back to Dashboard</a>
 
     {history}
     """
@@ -274,6 +301,9 @@ def client_history(client_name):
 
 @app.route("/note/<int:checkin_id>", methods=["POST"])
 def add_note(checkin_id):
+    if not is_coach_logged_in():
+        return "Unauthorized."
+
     checkins = load_checkins()
 
     if checkin_id < 0 or checkin_id >= len(checkins):
@@ -284,9 +314,9 @@ def add_note(checkin_id):
 
     save_checkins(checkins)
 
-    return """
+    return f"""
     <h1>Coach Note Saved ✅</h1>
-    <a href="/dashboard">Back to Dashboard</a>
+    <a href="{coach_dashboard_link()}">Back to Dashboard</a>
     """
 
 
