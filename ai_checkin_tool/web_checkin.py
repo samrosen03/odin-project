@@ -184,15 +184,22 @@ def dashboard():
         """
 
     checkins = load_checkins()
+    cards = ""
 
     if not checkins:
         return f"""
         <h1>Coach Dashboard</h1>
-        <p>No check-ins yet.</p>
-        <a href="/checkin">Go to check-in form</a>
-        """
 
-    cards = ""
+        <p>No check-ins yet.</p>
+
+        <p><a href="/checkin">Submit new check-in</a></p>
+
+        <p>
+            <a href="/search?password={COACH_PASSWORD}">
+                Search Clients
+            </a>
+        </p>
+        """
 
     for checkin_id, c in reversed(list(enumerate(checkins))):
         status = "✅"
@@ -233,7 +240,15 @@ def dashboard():
 
     return f"""
     <h1>Coach Dashboard</h1>
+
     <p><a href="/checkin">Submit new check-in</a></p>
+
+    <p>
+        <a href="/search?password={COACH_PASSWORD}">
+            Search Clients
+        </a>
+    </p>
+
     {cards}
     """
 
@@ -316,6 +331,49 @@ def add_note(checkin_id):
 
     return f"""
     <h1>Coach Note Saved ✅</h1>
+    <a href="{coach_dashboard_link()}">Back to Dashboard</a>
+    """
+
+
+@app.route("/search")
+def search_clients():
+    if not is_coach_logged_in():
+        return "Unauthorized"
+
+    query = request.args.get("q", "").lower()
+    checkins = load_checkins()
+
+    matches = []
+
+    for c in checkins:
+        if query in c["client"].lower():
+            matches.append(c["client"])
+
+    unique_matches = sorted(set(matches))
+    results = ""
+
+    for client in unique_matches:
+        results += f"""
+        <li>
+            <a href="/client/{client}?password={COACH_PASSWORD}">
+                {client}
+            </a>
+        </li>
+        """
+
+    return f"""
+    <h1>Client Search</h1>
+
+    <form>
+        <input type="hidden" name="password" value="{COACH_PASSWORD}">
+        <input name="q" placeholder="Search client" value="{query}">
+        <button type="submit">Search</button>
+    </form>
+
+    <ul>
+        {results}
+    </ul>
+
     <a href="{coach_dashboard_link()}">Back to Dashboard</a>
     """
 
