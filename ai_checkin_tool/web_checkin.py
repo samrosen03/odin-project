@@ -83,6 +83,26 @@ def build_trend_html(current, previous):
     return trend_html
 
 
+def calculate_weight_change(client_checkins):
+    if len(client_checkins) < 2:
+        return "Weight Change: Need at least 2 check-ins"
+
+    try:
+        first_weight = float(client_checkins[0][1]["weight"])
+        latest_weight = float(client_checkins[-1][1]["weight"])
+    except ValueError:
+        return "Weight Change: Invalid weight data"
+
+    change = latest_weight - first_weight
+
+    if change > 0:
+        return f"⬆️ Weight Change: +{change:.1f} lbs"
+    elif change < 0:
+        return f"⬇️ Weight Change: {change:.1f} lbs"
+    else:
+        return "➡️ Weight Change: No Change"
+
+
 @app.route("/")
 def home():
     return """
@@ -275,6 +295,8 @@ def client_history(client_name):
     if not client_checkins:
         return f"<h1>No check-ins found for {client_name}</h1>"
 
+    weight_change = calculate_weight_change(client_checkins)
+
     history = ""
     previous = None
 
@@ -307,6 +329,8 @@ def client_history(client_name):
 
     return f"""
     <h1>{client_name}'s Check-In History</h1>
+
+    <h3>{weight_change}</h3>
 
     <a href="{coach_dashboard_link()}">← Back to Dashboard</a>
 
