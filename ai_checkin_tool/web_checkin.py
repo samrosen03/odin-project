@@ -103,6 +103,32 @@ def calculate_weight_change(client_checkins):
         return "➡️ Weight Change: No Change"
 
 
+def build_client_summary(client_checkins):
+    total = len(client_checkins)
+
+    avg_energy = round(sum(int(c[1]["energy"]) for c in client_checkins) / total, 1)
+    avg_sleep = round(sum(int(c[1]["sleep"]) for c in client_checkins) / total, 1)
+    avg_nutrition = round(sum(int(c[1]["nutrition"]) for c in client_checkins) / total, 1)
+    avg_stress = round(sum(int(c[1]["stress"]) for c in client_checkins) / total, 1)
+
+    latest = client_checkins[-1][1]
+
+    return f"""
+    <h2>📊 Client Summary</h2>
+
+    <p><strong>Total Check-Ins:</strong> {total}</p>
+    <p><strong>Average Energy:</strong> {avg_energy}/10</p>
+    <p><strong>Average Sleep:</strong> {avg_sleep}/10</p>
+    <p><strong>Average Nutrition:</strong> {avg_nutrition}/10</p>
+    <p><strong>Average Stress:</strong> {avg_stress}/10</p>
+
+    <p><strong>Latest Win:</strong> {latest['win']}</p>
+    <p><strong>Latest Struggle:</strong> {latest['struggle']}</p>
+
+    <hr>
+    """
+
+
 @app.route("/")
 def home():
     return """
@@ -296,6 +322,7 @@ def client_history(client_name):
         return f"<h1>No check-ins found for {client_name}</h1>"
 
     weight_change = calculate_weight_change(client_checkins)
+    summary_html = build_client_summary(client_checkins)
 
     history = ""
     previous = None
@@ -329,6 +356,8 @@ def client_history(client_name):
 
     return f"""
     <h1>{client_name}'s Check-In History</h1>
+
+    {summary_html}
 
     <h3>{weight_change}</h3>
 
