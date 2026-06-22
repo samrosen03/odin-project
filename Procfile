@@ -1,0 +1,1 @@
+web: gunicorn ai_checkin_tool.web_checkin:app
