@@ -250,6 +250,13 @@ def dashboard():
     for checkin_id, c in reversed(list(enumerate(checkins))):
         status = "✅"
 
+        checkin_date = datetime.fromisoformat(c["date"])
+        days_since = (datetime.now() - checkin_date).days
+
+        followup = ""
+        if days_since >= 7:
+            followup = " 🚨 Follow Up"
+
         if (
             int(c["sleep"]) <= 4
             or int(c["stress"]) >= 8
@@ -266,6 +273,7 @@ def dashboard():
             </h2>
 
             <p><strong>Status:</strong> {status}</p>
+            <p><strong>Last Check-In:</strong> {days_since} day(s) ago{followup}</p>
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
             <p><strong>Energy:</strong> {c['energy']}/10</p>
