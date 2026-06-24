@@ -419,6 +419,11 @@ def search_clients():
             <a href="/client/{client}?password={COACH_PASSWORD}">
                 {client}
             </a>
+    <br><br>
+
+<a href="/leaderboard?password={COACH_PASSWORD}">
+    Client Leaderboard
+</a>
         </li>
         """
 
@@ -438,6 +443,53 @@ def search_clients():
     <a href="{coach_dashboard_link()}">Back to Dashboard</a>
     """
 
+@app.route("/leaderboard")
+def leaderboard():
+    if not is_coach_logged_in():
+        return "Unauthorized"
+
+    checkins = load_checkins()
+
+    counts = {}
+
+    for c in checkins:
+        client = c["client"]
+
+        if client not in counts:
+            counts[client] = 0
+
+        counts[client] += 1
+
+    sorted_clients = sorted(
+        counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    leaderboard_html = ""
+
+    for rank, (client, total) in enumerate(sorted_clients, start=1):
+        leaderboard_html += f"""
+        <li>
+            #{rank} -
+            <a href="/client/{client}?password={COACH_PASSWORD}">
+                {client}
+            </a>
+            ({total} check-ins)
+        </li>
+        """
+
+    return f"""
+    <h1>🏆 Client Leaderboard</h1>
+
+    <ol>
+        {leaderboard_html}
+    </ol>
+
+    <a href="{coach_dashboard_link()}">
+        Back to Dashboard
+    </a>
+    """
 
 if __name__ == "__main__":
     app.run(debug=True)
