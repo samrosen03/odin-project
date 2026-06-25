@@ -151,6 +151,7 @@ def checkin():
             "stress": request.form.get("stress"),
             "win": request.form.get("win"),
             "struggle": request.form.get("struggle"),
+            "goal": request.form.get("goal"),
             "coach_note": "",
         }
 
@@ -166,6 +167,7 @@ def checkin():
 
         <p><strong>Client:</strong> {checkin_data['client']}</p>
         <p><strong>Weight:</strong> {checkin_data['weight']}</p>
+        <p><strong>Goal:</strong> {checkin_data['goal']}</p>
         <p><strong>Energy:</strong> {checkin_data['energy']}/10</p>
         <p><strong>Sleep:</strong> {checkin_data['sleep']}/10</p>
         <p><strong>Nutrition:</strong> {checkin_data['nutrition']}/10</p>
@@ -206,6 +208,18 @@ def checkin():
 
         <label>Stress 1-10:</label><br>
         <input name="stress" type="number" min="1" max="10" required><br><br>
+<label>Primary Goal:</label><br>
+
+<select name="goal" required>
+    <option value="">Select Goal</option>
+    <option>Lose Fat</option>
+    <option>Build Muscle</option>
+    <option>Improve Strength</option>
+    <option>Improve Endurance</option>
+    <option>General Health</option>
+</select>
+
+<br><br>
 
         <label>Biggest win this week:</label><br>
         <textarea name="win" required></textarea><br><br>
@@ -343,6 +357,8 @@ def client_history(client_name):
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
             <p><strong>Energy:</strong> {c['energy']}/10</p>
+            <p><strong>Goal:</strong> {c['goal']}</p>
+            <p><strong>Goal:</strong> {c.get('goal', 'Not set')}</p>
             <p><strong>Sleep:</strong> {c['sleep']}/10</p>
             <p><strong>Nutrition:</strong> {c['nutrition']}/10</p>
             <p><strong>Stress:</strong> {c['stress']}/10</p>
