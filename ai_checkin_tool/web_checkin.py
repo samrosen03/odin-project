@@ -61,6 +61,25 @@ def generate_coach_feedback(checkin):
 
     return feedback
 
+def generate_action_items(checkin):
+    actions = []
+
+    if int(checkin["sleep"]) <= 5:
+        actions.append("😴 Prioritize getting at least 7-8 hours of sleep.")
+
+    if int(checkin["nutrition"]) <= 6:
+        actions.append("🥗 Focus on hitting your nutrition goals 5+ days this week.")
+
+    if int(checkin["stress"]) >= 7:
+        actions.append("🧘 Schedule at least one recovery activity this week.")
+
+    if int(checkin["energy"]) <= 5:
+        actions.append("🏃 Reduce training intensity and focus on recovery.")
+
+    if not actions:
+        actions.append("✅ Stay consistent with your current routine.")
+
+    return actions
 
 def build_trend_html(current, previous):
     if not previous:
@@ -160,7 +179,9 @@ def checkin():
         save_checkins(checkins)
 
         feedback = generate_coach_feedback(checkin_data)
+        actions = generate_action_items(checkin_data)
         feedback_html = "".join(f"<li>{item}</li>" for item in feedback)
+        actions_html = "".join(f"<li>{item}</li>" for item in actions)
 
         return f"""
         <h1>Check-in Submitted ✅</h1>
@@ -179,6 +200,13 @@ def checkin():
 
         <h2>🤖 Coach Feedback</h2>
         <ul>{feedback_html}</ul>
+        <hr>
+
+<h2>📋 Action Plan for This Week</h2>
+
+<ul>
+    {actions_html}
+</ul>
 
         <p><strong>Main Focus:</strong> {checkin_data['struggle']}</p>
 
