@@ -80,6 +80,17 @@ def generate_action_items(checkin):
         actions.append("✅ Stay consistent with your current routine.")
 
     return actions
+def calculate_compliance_score(checkin):
+    score = (
+        int(checkin["energy"])
+        + int(checkin["sleep"])
+        + int(checkin["nutrition"])
+        + (11 - int(checkin["stress"]))
+    )
+
+    percentage = round(score / 40 * 100)
+
+    return percentage
 
 def build_trend_html(current, previous):
     if not previous:
@@ -180,6 +191,7 @@ def checkin():
 
         feedback = generate_coach_feedback(checkin_data)
         actions = generate_action_items(checkin_data)
+        compliance = calculate_compliance_score(checkin_data)
         feedback_html = "".join(f"<li>{item}</li>" for item in feedback)
         actions_html = "".join(f"<li>{item}</li>" for item in actions)
 
@@ -203,7 +215,11 @@ def checkin():
         <hr>
 
 <h2>📋 Action Plan for This Week</h2>
+<hr>
 
+<h2>📈 Weekly Compliance Score</h2>
+
+<h1>{compliance}%</h1>
 <ul>
     {actions_html}
 </ul>
