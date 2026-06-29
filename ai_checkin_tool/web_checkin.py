@@ -2,8 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from flask import Flask, request
-
+from flask import Flask, request, render_template
 app = Flask(__name__)
 
 DATA_FILE = "data/checkins.json"
@@ -178,11 +177,7 @@ def build_client_summary(client_checkins):
 
 @app.route("/")
 def home():
-    return """
-    <h1>AI Check-In Tool is running ✅</h1>
-    <p>Go to <a href="/checkin">/checkin</a> to submit a check-in.</p>
-    <p>Go to <a href="/dashboard">/dashboard</a> to view coach dashboard.</p>
-    """
+    return render_template("home.html")
 
 
 @app.route("/checkin", methods=["GET", "POST"])
