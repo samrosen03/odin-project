@@ -54,3 +54,28 @@ a {
     border-radius: 14px;
     background: #ffffff;
 }
+.navbar {
+    background: #111827;
+    color: white;
+    padding: 18px 40px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-links a {
+    color: white;
+    margin-left: 25px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.nav-links a:hover {
+    color: #60a5fa;
+}
