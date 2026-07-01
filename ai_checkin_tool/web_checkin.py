@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 from flask import Flask, request, render_template
+
 app = Flask(__name__)
 
 DATA_FILE = "data/checkins.json"
@@ -306,6 +307,52 @@ def dashboard():
     checkins = load_checkins()
     cards = ""
 
+    total_checkins = len(checkins)
+    clients = sorted(set(c["client"] for c in checkins))
+    total_clients = len(clients)
+
+    follow_up = sum(
+        1
+        for c in checkins
+        if (datetime.now() - datetime.fromisoformat(c["date"])).days >= 7
+    )
+
+    leaderboard = {}
+
+    for c in checkins:
+        leaderboard[c["client"]] = leaderboard.get(c["client"], 0) + 1
+
+    most_active = "-"
+
+    if leaderboard:
+        most_active = max(leaderboard, key=leaderboard.get)
+
+    stats_html = f"""
+    <div class="stats-bar">
+
+        <div class="stat-card">
+            <h3>👥 Clients</h3>
+            <p>{total_clients}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>📝 Check-Ins</h3>
+            <p>{total_checkins}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>🚨 Follow-Ups</h3>
+            <p>{follow_up}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>🏆 Most Active</h3>
+            <p>{most_active}</p>
+        </div>
+
+    </div>
+    """
+
     if not checkins:
         return f"""
         <h1>Coach Dashboard</h1>
@@ -313,9 +360,10 @@ def dashboard():
         <p>No check-ins yet.</p>
 
         <p><a href="/checkin">Submit new check-in</a></p>
-
         <p><a href="/search?password={COACH_PASSWORD}">Search Clients</a></p>
         <p><a href="/leaderboard?password={COACH_PASSWORD}">Client Leaderboard</a></p>
+
+        {stats_html}
         """
 
     for checkin_id, c in reversed(list(enumerate(checkins))):
@@ -336,7 +384,7 @@ def dashboard():
             status = "🚨 Needs Attention"
 
         cards += f"""
-        <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
+        <div class="card">
             <h2>
                 <a href="/client/{c['client']}?password={COACH_PASSWORD}">
                     {c['client']}
@@ -370,6 +418,8 @@ def dashboard():
     <p><a href="/checkin">Submit new check-in</a></p>
     <p><a href="/search?password={COACH_PASSWORD}">Search Clients</a></p>
     <p><a href="/leaderboard?password={COACH_PASSWORD}">Client Leaderboard</a></p>
+
+    {stats_html}
 
     {cards}
     """
@@ -407,7 +457,7 @@ def client_history(client_name):
         trend_html = build_trend_html(c, previous)
 
         history += f"""
-        <div style="border:1px solid #ccc; padding:15px; margin:15px 0;">
+        <div class="card">
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
             <p><strong>Goal:</strong> {c.get('goal', 'Not set')}</p>
