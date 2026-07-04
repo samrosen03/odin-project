@@ -241,8 +241,15 @@ def checkin():
         <hr>
 
         <h2>📈 Weekly Compliance Score</h2>
-        <h1>{compliance}%</h1>
 
+<div class="progress-container">
+    <div
+        class="progress-bar"
+        style="width:{compliance}%;">
+    </div>
+</div>
+
+<h2>{compliance}%</h2>
         <p><strong>Main Focus:</strong> {checkin_data['struggle']}</p>
 
         <br>
