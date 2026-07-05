@@ -108,6 +108,20 @@ def calculate_compliance_score(checkin):
     return round(score / 40 * 100)
 
 
+def calculate_risk_level(checkin):
+    energy = int(checkin["energy"])
+    sleep = int(checkin["sleep"])
+    stress = int(checkin["stress"])
+
+    if sleep <= 4 or energy <= 4 or stress >= 8:
+        return ("High", "#dc2626")
+
+    if sleep <= 6 or stress >= 6:
+        return ("Moderate", "#f59e0b")
+
+    return ("Low", "#16a34a")
+
+
 def build_trend_html(current, previous):
     if not previous:
         return ""
@@ -242,14 +256,12 @@ def checkin():
 
         <h2>📈 Weekly Compliance Score</h2>
 
-<div class="progress-container">
-    <div
-        class="progress-bar"
-        style="width:{compliance}%;">
-    </div>
-</div>
+        <div class="progress-container">
+            <div class="progress-bar" style="width:{compliance}%;"></div>
+        </div>
 
-<h2>{compliance}%</h2>
+        <h2>{compliance}%</h2>
+
         <p><strong>Main Focus:</strong> {checkin_data['struggle']}</p>
 
         <br>
@@ -374,7 +386,7 @@ def dashboard():
         """
 
     for checkin_id, c in reversed(list(enumerate(checkins))):
-        status = "✅"
+        risk, color = calculate_risk_level(c)
 
         checkin_date = datetime.fromisoformat(c["date"])
         days_since = (datetime.now() - checkin_date).days
@@ -382,13 +394,6 @@ def dashboard():
         followup = ""
         if days_since >= 7:
             followup = " 🚨 Follow Up"
-
-        if (
-            int(c["sleep"]) <= 4
-            or int(c["stress"]) >= 8
-            or int(c["energy"]) <= 4
-        ):
-            status = "🚨 Needs Attention"
 
         cards += f"""
         <div class="card">
@@ -398,7 +403,20 @@ def dashboard():
                 </a>
             </h2>
 
-            <p><strong>Status:</strong> {status}</p>
+            <p>
+                <strong>Risk Level:</strong>
+                <span
+                    style="
+                    background:{color};
+                    color:white;
+                    padding:6px 12px;
+                    border-radius:20px;
+                    font-weight:bold;
+                    ">
+                    {risk}
+                </span>
+            </p>
+
             <p><strong>Last Check-In:</strong> {days_since} day(s) ago{followup}</p>
             <p><strong>Date:</strong> {c['date'][:10]}</p>
             <p><strong>Weight:</strong> {c['weight']}</p>
