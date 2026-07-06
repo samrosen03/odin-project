@@ -7,6 +7,7 @@ from flask import Flask, request, render_template
 app = Flask(__name__)
 
 DATA_FILE = "data/checkins.json"
+WORKOUT_FILE = "data/workouts.json"
 COACH_PASSWORD = "coach123"
 
 
@@ -23,6 +24,21 @@ def save_checkins(checkins):
 
     with open(DATA_FILE, "w") as f:
         json.dump(checkins, f, indent=2)
+
+
+def load_workouts():
+    if not os.path.exists(WORKOUT_FILE):
+        return []
+
+    with open(WORKOUT_FILE, "r") as f:
+        return json.load(f)
+
+
+def save_workouts(workouts):
+    os.makedirs("data", exist_ok=True)
+
+    with open(WORKOUT_FILE, "w") as f:
+        json.dump(workouts, f, indent=2)
 
 
 def is_coach_logged_in():
@@ -190,6 +206,38 @@ def build_client_summary(client_checkins):
     """
 
 
+def build_workout_history(client_name):
+    workouts = load_workouts()
+
+    client_workouts = [
+        w for w in workouts
+        if w["client"].lower() == client_name.lower()
+    ]
+
+    if not client_workouts:
+        return """
+        <h2>🏋️ Workout History</h2>
+        <p>No workouts logged yet.</p>
+        """
+
+    workout_html = "<h2>🏋️ Workout History</h2>"
+
+    for w in reversed(client_workouts):
+        pr_badge = " ⭐ PR" if w.get("is_pr") else ""
+
+        workout_html += f"""
+        <div class="card">
+            <p><strong>Date:</strong> {w['date'][:10]}</p>
+            <p><strong>Exercise:</strong> {w['exercise']}{pr_badge}</p>
+            <p><strong>Weight:</strong> {w['weight']}</p>
+            <p><strong>Reps:</strong> {w['reps']}</p>
+            <p><strong>Notes:</strong> {w.get('notes', '')}</p>
+        </div>
+        """
+
+    return workout_html
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -312,6 +360,91 @@ def checkin():
     """
 
 
+@app.route("/workout", methods=["GET", "POST"])
+def workout_logger():
+    if not is_coach_logged_in():
+        return """
+        <h1>Coach Login</h1>
+        <form method="GET" action="/workout">
+            <input name="password" type="password" placeholder="Coach password">
+            <button type="submit">Login</button>
+        </form>
+        """
+
+    if request.method == "POST":
+        workout_data = {
+            "date": datetime.now().isoformat(),
+            "client": request.form.get("client"),
+            "exercise": request.form.get("exercise"),
+            "weight": request.form.get("weight"),
+            "reps": request.form.get("reps"),
+            "is_pr": request.form.get("is_pr") == "on",
+            "notes": request.form.get("notes"),
+        }
+
+        workouts = load_workouts()
+        workouts.append(workout_data)
+        save_workouts(workouts)
+
+        return f"""
+        <h1>Workout Saved ✅</h1>
+
+        <p><strong>Client:</strong> {workout_data['client']}</p>
+        <p><strong>Exercise:</strong> {workout_data['exercise']}</p>
+        <p><strong>Weight:</strong> {workout_data['weight']}</p>
+        <p><strong>Reps:</strong> {workout_data['reps']}</p>
+        <p><strong>PR:</strong> {"Yes" if workout_data['is_pr'] else "No"}</p>
+        <p><strong>Notes:</strong> {workout_data['notes']}</p>
+
+        <br>
+        <a href="/workout?password={COACH_PASSWORD}">Log another workout</a><br>
+        <a href="/client/{workout_data['client']}?password={COACH_PASSWORD}">View client profile</a><br>
+        <a href="{coach_dashboard_link()}">Back to Dashboard</a>
+        """
+
+    return f"""
+    <h1>Log Workout</h1>
+
+    <form method="POST" action="/workout?password={COACH_PASSWORD}">
+        <label>Client Name:</label><br>
+        <input name="client" required><br><br>
+
+        <label>Exercise:</label><br>
+        <select name="exercise" required>
+            <option value="">Select Exercise</option>
+            <option>Trap Bar Deadlift</option>
+            <option>Bench Press</option>
+            <option>Goblet Squat</option>
+            <option>Push-Up</option>
+            <option>Pull-Up</option>
+            <option>Farmer Carry</option>
+            <option>Plank</option>
+            <option>Row</option>
+            <option>Other</option>
+        </select><br><br>
+
+        <label>Weight:</label><br>
+        <input name="weight" required><br><br>
+
+        <label>Reps:</label><br>
+        <input name="reps" required><br><br>
+
+        <label>
+            <input type="checkbox" name="is_pr">
+            New PR?
+        </label><br><br>
+
+        <label>Notes:</label><br>
+        <textarea name="notes"></textarea><br><br>
+
+        <button type="submit">Save Workout</button>
+    </form>
+
+    <br>
+    <a href="{coach_dashboard_link()}">Back to Dashboard</a>
+    """
+
+
 @app.route("/dashboard")
 def dashboard():
     if not is_coach_logged_in():
@@ -379,6 +512,7 @@ def dashboard():
         <p>No check-ins yet.</p>
 
         <p><a href="/checkin">Submit new check-in</a></p>
+        <p><a href="/workout?password={COACH_PASSWORD}">Log Workout</a></p>
         <p><a href="/search?password={COACH_PASSWORD}">Search Clients</a></p>
         <p><a href="/leaderboard?password={COACH_PASSWORD}">Client Leaderboard</a></p>
 
@@ -441,6 +575,7 @@ def dashboard():
     <h1>Coach Dashboard</h1>
 
     <p><a href="/checkin">Submit new check-in</a></p>
+    <p><a href="/workout?password={COACH_PASSWORD}">Log Workout</a></p>
     <p><a href="/search?password={COACH_PASSWORD}">Search Clients</a></p>
     <p><a href="/leaderboard?password={COACH_PASSWORD}">Client Leaderboard</a></p>
 
@@ -474,6 +609,7 @@ def client_history(client_name):
 
     weight_change = calculate_weight_change(client_checkins)
     summary_html = build_client_summary(client_checkins)
+    workout_history = build_workout_history(client_name)
     latest = client_checkins[-1][1]
 
     profile_header = f"""
@@ -538,7 +674,17 @@ def client_history(client_name):
 
     <h3>{weight_change}</h3>
 
+    <p><a href="/workout?password={COACH_PASSWORD}">Log Workout</a></p>
+
     <a href="{coach_dashboard_link()}">← Back to Dashboard</a>
+
+    <hr>
+
+    {workout_history}
+
+    <hr>
+
+    <h2>✅ Check-In History</h2>
 
     {history}
     """
