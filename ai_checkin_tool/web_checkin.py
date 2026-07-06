@@ -474,6 +474,31 @@ def client_history(client_name):
 
     weight_change = calculate_weight_change(client_checkins)
     summary_html = build_client_summary(client_checkins)
+    latest = client_checkins[-1][1]
+
+    profile_header = f"""
+    <div class="profile-header">
+
+        <div class="profile-avatar">
+            {latest['client'][0].upper()}
+        </div>
+
+        <div>
+            <h1>{latest['client']}</h1>
+
+            <p>
+                🎯 Goal:
+                <strong>{latest.get('goal', 'Not Set')}</strong>
+            </p>
+
+            <p>
+                ⚖️ Current Weight:
+                <strong>{latest['weight']} lbs</strong>
+            </p>
+        </div>
+
+    </div>
+    """
 
     history = ""
     previous = None
@@ -507,7 +532,7 @@ def client_history(client_name):
         previous = c
 
     return f"""
-    <h1>{client_name}'s Check-In History</h1>
+    {profile_header}
 
     {summary_html}
 
