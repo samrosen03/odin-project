@@ -206,6 +206,36 @@ def build_client_summary(client_checkins):
     """
 
 
+def build_recent_prs(client_name):
+    workouts = load_workouts()
+
+    client_prs = [
+        w for w in workouts
+        if w["client"].lower() == client_name.lower()
+        and w.get("is_pr")
+    ]
+
+    if not client_prs:
+        return """
+        <h2>⭐ Recent PRs</h2>
+        <p>No PRs logged yet.</p>
+        """
+
+    prs_html = "<h2>⭐ Recent PRs</h2>"
+
+    for pr in reversed(client_prs[-5:]):
+        prs_html += f"""
+        <div class="card">
+            <p><strong>Date:</strong> {pr['date'][:10]}</p>
+            <p><strong>Exercise:</strong> {pr['exercise']}</p>
+            <p><strong>Weight:</strong> {pr['weight']}</p>
+            <p><strong>Reps:</strong> {pr['reps']}</p>
+        </div>
+        """
+
+    return prs_html
+
+
 def build_workout_history(client_name):
     workouts = load_workouts()
 
@@ -610,6 +640,7 @@ def client_history(client_name):
     weight_change = calculate_weight_change(client_checkins)
     summary_html = build_client_summary(client_checkins)
     workout_history = build_workout_history(client_name)
+    recent_prs = build_recent_prs(client_name)
     latest = client_checkins[-1][1]
 
     profile_header = f"""
@@ -680,8 +711,11 @@ def client_history(client_name):
 
     <hr>
 
-    {workout_history}
+{recent_prs}
 
+<hr>
+
+{workout_history}
     <hr>
 
     <h2>✅ Check-In History</h2>
