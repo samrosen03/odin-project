@@ -235,6 +235,51 @@ def build_recent_prs(client_name):
 
     return prs_html
 
+def build_pr_table(client_name):
+    workouts = load_workouts()
+
+    prs = {}
+
+    for workout in workouts:
+
+        if workout["client"].lower() != client_name.lower():
+            continue
+
+        if not workout.get("is_pr"):
+            continue
+
+        exercise = workout["exercise"]
+
+        prs[exercise] = workout
+
+    if not prs:
+        return """
+        <h2>🏆 Current Personal Records</h2>
+        <p>No PRs yet.</p>
+        """
+
+    html = """
+    <h2>🏆 Current Personal Records</h2>
+
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Exercise</th>
+            <th>Best Lift</th>
+        </tr>
+    """
+
+    for exercise, pr in sorted(prs.items()):
+
+        html += f"""
+        <tr>
+            <td>{exercise}</td>
+            <td>{pr['weight']} × {pr['reps']}</td>
+        </tr>
+        """
+
+    html += "</table><br>"
+
+    return html
 
 def build_workout_history(client_name):
     workouts = load_workouts()
@@ -641,6 +686,7 @@ def client_history(client_name):
     summary_html = build_client_summary(client_checkins)
     workout_history = build_workout_history(client_name)
     recent_prs = build_recent_prs(client_name)
+    pr_table = build_pr_table(client_name)
     latest = client_checkins[-1][1]
 
     profile_header = f"""
@@ -710,6 +756,10 @@ def client_history(client_name):
     <a href="{coach_dashboard_link()}">← Back to Dashboard</a>
 
     <hr>
+
+{pr_table}
+
+<hr>
 
 {recent_prs}
 
