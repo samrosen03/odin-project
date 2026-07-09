@@ -281,6 +281,14 @@ def build_pr_table(client_name):
 
     return html
 
+def build_attendance_streak(client_checkins):
+    total = len(client_checkins)
+
+    if total == 1:
+        return "🔥 1 Check-In"
+
+    return f"🔥 {total} Check-Ins"
+
 def build_workout_history(client_name):
     workouts = load_workouts()
 
@@ -683,6 +691,7 @@ def client_history(client_name):
         return f"<h1>No check-ins found for {client_name}</h1>"
 
     weight_change = calculate_weight_change(client_checkins)
+    attendance = build_attendance_streak(client_checkins)
     summary_html = build_client_summary(client_checkins)
     workout_history = build_workout_history(client_name)
     recent_prs = build_recent_prs(client_name)
@@ -707,6 +716,9 @@ def client_history(client_name):
             <p>
                 ⚖️ Current Weight:
                 <strong>{latest['weight']} lbs</strong>
+                <p>
+    <strong>{attendance}</strong>
+</p>
             </p>
         </div>
 
