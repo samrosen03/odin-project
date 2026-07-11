@@ -41,6 +41,40 @@ def save_workouts(workouts):
         json.dump(workouts, file, indent=2)
 
 
+def check_for_new_pr(client_name, exercise, weight):
+    workouts = load_workouts()
+
+    try:
+        new_weight = float(weight)
+    except (ValueError, TypeError):
+        return False
+
+    previous_weights = []
+
+    for workout in workouts:
+        same_client = (
+            workout.get("client", "").strip().lower()
+            == client_name.strip().lower()
+        )
+        same_exercise = (
+            workout.get("exercise", "").strip().lower()
+            == exercise.strip().lower()
+        )
+
+        if not (same_client and same_exercise):
+            continue
+
+        try:
+            previous_weights.append(float(workout.get("weight", "")))
+        except (ValueError, TypeError):
+            continue
+
+    if not previous_weights:
+        return True
+
+    return new_weight > max(previous_weights)
+
+
 def is_coach_logged_in():
     return request.args.get("password") == COACH_PASSWORD
 
@@ -534,14 +568,26 @@ def workout_logger():
     selected_client = request.args.get("client", "").strip()
 
     if request.method == "POST":
+        client_name = request.form.get("client", "").strip()
+        exercise = request.form.get("exercise", "").strip()
+        weight = request.form.get("weight", "").strip()
+        reps = request.form.get("reps", "").strip()
+        notes = request.form.get("notes", "").strip()
+
+        is_pr = check_for_new_pr(
+            client_name,
+            exercise,
+            weight,
+        )
+
         workout_data = {
             "date": datetime.now().isoformat(),
-            "client": request.form.get("client", "").strip(),
-            "exercise": request.form.get("exercise", "").strip(),
-            "weight": request.form.get("weight", "").strip(),
-            "reps": request.form.get("reps", "").strip(),
-            "is_pr": request.form.get("is_pr") == "on",
-            "notes": request.form.get("notes", "").strip(),
+            "client": client_name,
+            "exercise": exercise,
+            "weight": weight,
+            "reps": reps,
+            "is_pr": is_pr,
+            "notes": notes,
         }
 
         workouts = load_workouts()
@@ -616,12 +662,6 @@ def workout_logger():
 
         <label>Reps:</label><br>
         <input name="reps" required><br><br>
-
-        <label>
-            <input type="checkbox" name="is_pr">
-            New PR?
-        </label>
-        <br><br>
 
         <label>Notes:</label><br>
         <textarea name="notes"></textarea><br><br>
