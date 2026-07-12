@@ -2,10 +2,107 @@
 
 {% block content %}
 
-<h1>AI Fitness Check-In</h1>
+<section class="home-hero">
 
-<p>Welcome to the Port of Power AI Check-In Tool.</p>
+    <div class="hero-copy">
+        <p class="hero-kicker">CLIENT PERFORMANCE TRACKING</p>
 
-<a href="/checkin">Start Check-In</a>
+        <h1>
+            Track workouts, PRs, and client progress
+            without losing the important details.
+        </h1>
+
+        <p class="hero-description">
+            A simple coaching dashboard for logging workouts,
+            tracking personal records, reviewing check-ins,
+            and keeping every client’s progress in one place.
+        </p>
+
+        <div class="hero-buttons">
+            <a
+                class="button button-primary"
+                href="/dashboard?password=coach123"
+            >
+                Open Coach Dashboard
+            </a>
+
+            <a
+                class="button button-secondary"
+                href="/workout?password=coach123"
+            >
+                Log a Workout
+            </a>
+        </div>
+    </div>
+
+    <div class="hero-panel">
+        <div class="hero-panel-header">
+            <span>Coach Overview</span>
+            <span class="status-dot">Live</span>
+        </div>
+
+        <div class="preview-card">
+            <div>
+                <p class="preview-label">Client</p>
+                <h3>Sarah M.</h3>
+            </div>
+
+            <span class="risk-badge">Low Risk</span>
+        </div>
+
+        <div class="preview-stats">
+            <div>
+                <span>Bench PR</span>
+                <strong>135 × 5</strong>
+            </div>
+
+            <div>
+                <span>Check-Ins</span>
+                <strong>12</strong>
+            </div>
+
+            <div>
+                <span>Goal</span>
+                <strong>Build Strength</strong>
+            </div>
+        </div>
+
+        <div class="preview-footer">
+            Everything a coach needs in under 30 seconds.
+        </div>
+    </div>
+
+</section>
+
+<section class="home-features">
+
+    <div class="home-feature-card">
+        <div class="feature-icon">🏋️</div>
+        <h2>Workout Logging</h2>
+        <p>
+            Record exercises, weights, reps, notes,
+            and automatically detect new personal records.
+        </p>
+    </div>
+
+    <div class="home-feature-card">
+        <div class="feature-icon">🏆</div>
+        <h2>PR Tracking</h2>
+        <p>
+            See each client’s current personal records
+            and recent performance history at a glance.
+        </p>
+    </div>
+
+    <div class="home-feature-card">
+        <div class="feature-icon">📈</div>
+        <h2>Client Progress</h2>
+        <p>
+            Review check-ins, goals, trends,
+            coach notes, and workout history in one place.
+        </p>
+    </div>
+
+</section>
 
 {% endblock %}
