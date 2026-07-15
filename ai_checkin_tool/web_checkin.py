@@ -695,32 +695,16 @@ def dashboard():
 
     checkins = load_checkins()
     cards = ""
-    latest_checkins = {}
-
-    for checkin_id, checkin in enumerate(checkins):
-        client_key = checkin["client"].strip().lower()
-        current_record = latest_checkins.get(client_key)
-
-        if current_record is None:
-            latest_checkins[client_key] = (checkin_id, checkin)
-            continue
-
-        current_date = datetime.fromisoformat(
-            current_record[1]["date"]
-        )
-        new_date = datetime.fromisoformat(
-            checkin["date"]
-        )
-
-        if new_date > current_date:
-            latest_checkins[client_key] = (checkin_id, checkin)
 
     total_checkins = len(checkins)
-    total_clients = len(latest_checkins)
+    clients = sorted(
+        set(checkin["client"] for checkin in checkins)
+    )
+    total_clients = len(clients)
 
     follow_up = sum(
         1
-        for checkin_id, checkin in latest_checkins.values()
+        for checkin in checkins
         if (
             datetime.now()
             - datetime.fromisoformat(checkin["date"])
@@ -768,12 +752,6 @@ def dashboard():
     if not checkins:
         return f"""
         <h1>Coach Dashboard</h1>
-        <input
-    type="text"
-    id="clientSearch"
-    placeholder="Search clients..."
-    onkeyup="filterClients()"
->
 
         <p>No check-ins yet.</p>
 
@@ -804,15 +782,9 @@ def dashboard():
         {stats_html}
         """
 
-    sorted_latest_checkins = sorted(
-        latest_checkins.values(),
-        key=lambda item: datetime.fromisoformat(
-            item[1]["date"]
-        ),
-        reverse=True,
-    )
-
-    for checkin_id, checkin in sorted_latest_checkins:
+    for checkin_id, checkin in reversed(
+        list(enumerate(checkins))
+    ):
         risk, color = calculate_risk_level(checkin)
 
         checkin_date = datetime.fromisoformat(checkin["date"])
@@ -824,10 +796,8 @@ def dashboard():
             followup = " 🚨 Follow Up"
 
         cards += f"""
-<div
-    class="card client-card"
-    data-client="{checkin['client'].lower()}"
->            <h2>
+        <div class="card">
+            <h2>
                 <a
                     href="/client/{checkin['client']}?password={COACH_PASSWORD}">
                     {checkin['client']}
