@@ -768,6 +768,12 @@ def dashboard():
     if not checkins:
         return f"""
         <h1>Coach Dashboard</h1>
+        <input
+    type="text"
+    id="clientSearch"
+    placeholder="Search clients..."
+    onkeyup="filterClients()"
+>
 
         <p>No check-ins yet.</p>
 
@@ -818,8 +824,10 @@ def dashboard():
             followup = " 🚨 Follow Up"
 
         cards += f"""
-        <div class="card">
-            <h2>
+<div
+    class="card client-card"
+    data-client="{checkin['client'].lower()}"
+>            <h2>
                 <a
                     href="/client/{checkin['client']}?password={COACH_PASSWORD}">
                     {checkin['client']}
