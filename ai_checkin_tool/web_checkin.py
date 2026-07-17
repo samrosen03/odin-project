@@ -1,3 +1,4 @@
+
 import json
 import os
 from datetime import datetime
@@ -726,46 +727,28 @@ def dashboard():
         )
 
     stats_html = f"""
-<div class="stats-bar">
+    <div class="stats-bar">
+        <div class="stat-card">
+            <h3>👥 Clients</h3>
+            <p>{total_clients}</p>
+        </div>
 
-    <div class="stat-card">
-        <h3>👥 Clients</h3>
-        <p>{total_clients}</p>
+        <div class="stat-card">
+            <h3>📝 Check-Ins</h3>
+            <p>{total_checkins}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>🚨 Follow-Ups</h3>
+            <p>{follow_up}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>🏆 Most Active</h3>
+            <p>{most_active}</p>
+        </div>
     </div>
-
-    <div class="stat-card">
-        <h3>📝 Check-Ins</h3>
-        <p>{total_checkins}</p>
-    </div>
-
-    <div class="stat-card">
-        <h3>🚨 Follow-Ups</h3>
-        <p>{follow_up}</p>
-    </div>
-
-    <div class="stat-card">
-        <h3>🏆 Most Active</h3>
-        <p>{most_active}</p>
-    </div>
-
-    <div class="stat-card">
-        <h3>🏋️ Workouts</h3>
-        <p>{len(load_workouts())}</p>
-    </div>
-
-    <div class="stat-card">
-        <h3>⭐ PRs</h3>
-        <p>{
-            sum(
-                1
-                for workout in load_workouts()
-                if workout.get("is_pr")
-            )
-        }</p>
-    </div>
-
-</div>
-"""
+    """
 
     if not checkins:
         return f"""
