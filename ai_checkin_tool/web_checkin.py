@@ -1,4 +1,3 @@
-
 import json
 import os
 from datetime import datetime
@@ -698,14 +697,24 @@ def dashboard():
     cards = ""
 
     total_checkins = len(checkins)
+
     clients = sorted(
-        set(checkin["client"] for checkin in checkins)
+        set(
+            checkin["client"].strip().lower()
+            for checkin in checkins
+        )
     )
     total_clients = len(clients)
 
+    latest_checkins = {}
+
+    for checkin_id, checkin in enumerate(checkins):
+        client_name = checkin["client"].strip().lower()
+        latest_checkins[client_name] = (checkin_id, checkin)
+
     follow_up = sum(
         1
-        for checkin in checkins
+        for checkin_id, checkin in latest_checkins.values()
         if (
             datetime.now()
             - datetime.fromisoformat(checkin["date"])
@@ -784,7 +793,7 @@ def dashboard():
         """
 
     for checkin_id, checkin in reversed(
-        list(enumerate(checkins))
+        list(latest_checkins.values())
     ):
         risk, color = calculate_risk_level(checkin)
 
