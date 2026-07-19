@@ -806,7 +806,9 @@ def dashboard():
             followup = " 🚨 Follow Up"
 
         cards += f"""
-        <div class="card">
+        <div
+    class="card client-card"
+    data-client="{checkin['client']}">
             <h2>
                 <a
                     href="/client/{checkin['client']}?password={COACH_PASSWORD}">
@@ -893,9 +895,42 @@ def dashboard():
         </a>
     </p>
 
-    {stats_html}
+  {stats_html}
 
-    {cards}
+<h2>Client Overview</h2>
+
+<input
+    id="clientSearch"
+    type="text"
+    placeholder="Search clients..."
+    onkeyup="filterClients()">
+
+{cards}
+
+<script>
+function filterClients() {{
+    const searchValue = document
+        .getElementById("clientSearch")
+        .value
+        .toLowerCase();
+
+    const clientCards = document
+        .querySelectorAll(".client-card");
+
+    clientCards.forEach(function(card) {{
+        const clientName = card
+            .dataset
+            .client
+            .toLowerCase();
+
+        if (clientName.includes(searchValue)) {{
+            card.style.display = "block";
+        }} else {{
+            card.style.display = "none";
+        }}
+    }});
+}}
+</script>
     """
 
 
