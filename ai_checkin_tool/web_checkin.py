@@ -697,24 +697,14 @@ def dashboard():
     cards = ""
 
     total_checkins = len(checkins)
-
     clients = sorted(
-        set(
-            checkin["client"].strip().lower()
-            for checkin in checkins
-        )
+        set(checkin["client"] for checkin in checkins)
     )
     total_clients = len(clients)
 
-    latest_checkins = {}
-
-    for checkin_id, checkin in enumerate(checkins):
-        client_name = checkin["client"].strip().lower()
-        latest_checkins[client_name] = (checkin_id, checkin)
-
     follow_up = sum(
         1
-        for checkin_id, checkin in latest_checkins.values()
+        for checkin in checkins
         if (
             datetime.now()
             - datetime.fromisoformat(checkin["date"])
@@ -793,7 +783,7 @@ def dashboard():
         """
 
     for checkin_id, checkin in reversed(
-        list(latest_checkins.values())
+        list(enumerate(checkins))
     ):
         risk, color = calculate_risk_level(checkin)
 
@@ -806,9 +796,7 @@ def dashboard():
             followup = " 🚨 Follow Up"
 
         cards += f"""
-        <div
-    class="card client-card"
-    data-client="{checkin['client']}">
+        <div class="card">
             <h2>
                 <a
                     href="/client/{checkin['client']}?password={COACH_PASSWORD}">
@@ -895,42 +883,9 @@ def dashboard():
         </a>
     </p>
 
-  {stats_html}
+    {stats_html}
 
-<h2>Client Overview</h2>
-
-<input
-    id="clientSearch"
-    type="text"
-    placeholder="Search clients..."
-    onkeyup="filterClients()">
-
-{cards}
-
-<script>
-function filterClients() {{
-    const searchValue = document
-        .getElementById("clientSearch")
-        .value
-        .toLowerCase();
-
-    const clientCards = document
-        .querySelectorAll(".client-card");
-
-    clientCards.forEach(function(card) {{
-        const clientName = card
-            .dataset
-            .client
-            .toLowerCase();
-
-        if (clientName.includes(searchValue)) {{
-            card.style.display = "block";
-        }} else {{
-            card.style.display = "none";
-        }}
-    }});
-}}
-</script>
+    {cards}
     """
 
 
