@@ -844,7 +844,19 @@ def dashboard():
                 <strong>Coach Note:</strong>
                 {checkin.get('coach_note', 'None yet')}
             </p>
+<p>
+    <a
+        href="/workout?password={COACH_PASSWORD}&client={checkin['client']}">
+        🏋️ Log Workout
+    </a>
+</p>
 
+<p>
+    <a
+        href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+        👤 View Full Profile
+    </a>
+</p>
             <form
                 method="POST"
                 action="/note/{checkin_id}?password={COACH_PASSWORD}">
