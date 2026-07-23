@@ -697,14 +697,24 @@ def dashboard():
     cards = ""
 
     total_checkins = len(checkins)
+
     clients = sorted(
-        set(checkin["client"] for checkin in checkins)
+        set(
+            checkin["client"].strip().lower()
+            for checkin in checkins
+        )
     )
     total_clients = len(clients)
 
+    latest_checkins = {}
+
+    for checkin_id, checkin in enumerate(checkins):
+        client_name = checkin["client"].strip().lower()
+        latest_checkins[client_name] = (checkin_id, checkin)
+
     follow_up = sum(
         1
-        for checkin in checkins
+        for checkin_id, checkin in latest_checkins.values()
         if (
             datetime.now()
             - datetime.fromisoformat(checkin["date"])
@@ -783,7 +793,7 @@ def dashboard():
         """
 
     for checkin_id, checkin in reversed(
-        list(enumerate(checkins))
+        list(latest_checkins.values())
     ):
         risk, color = calculate_risk_level(checkin)
 
@@ -844,19 +854,7 @@ def dashboard():
                 <strong>Coach Note:</strong>
                 {checkin.get('coach_note', 'None yet')}
             </p>
-<p>
-    <a
-        href="/workout?password={COACH_PASSWORD}&client={checkin['client']}">
-        🏋️ Log Workout
-    </a>
-</p>
 
-<p>
-    <a
-        href="/client/{checkin['client']}?password={COACH_PASSWORD}">
-        👤 View Full Profile
-    </a>
-</p>
             <form
                 method="POST"
                 action="/note/{checkin_id}?password={COACH_PASSWORD}">
