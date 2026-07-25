@@ -391,6 +391,41 @@ def build_workout_history(client_name):
     return workout_html
 
 
+def build_recent_workout_activity():
+    workouts = load_workouts()
+
+    if not workouts:
+        return """
+        <h2>🏋️ Recent Workout Activity</h2>
+        <p>No workouts logged yet.</p>
+        """
+
+    activity_html = "<h2>🏋️ Recent Workout Activity</h2>"
+
+    for workout in reversed(workouts[-5:]):
+        pr_badge = " ⭐ New PR" if workout.get("is_pr") else ""
+
+        activity_html += f"""
+        <div class="card">
+            <p>
+                <strong>{workout['client']}</strong>
+                {pr_badge}
+            </p>
+
+            <p>
+                {workout['exercise']}:
+                {workout['weight']} × {workout['reps']}
+            </p>
+
+            <p>
+                <small>{workout['date'][:10]}</small>
+            </p>
+        </div>
+        """
+
+    return activity_html
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -695,6 +730,7 @@ def dashboard():
 
     checkins = load_checkins()
     cards = ""
+    recent_activity = build_recent_workout_activity()
 
     total_checkins = len(checkins)
     clients = sorted(
@@ -884,6 +920,14 @@ def dashboard():
     </p>
 
     {stats_html}
+
+    <hr>
+
+    {recent_activity}
+
+    <hr>
+
+    <h2>Client Overview</h2>
 
     {cards}
     """
