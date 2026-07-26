@@ -730,17 +730,26 @@ def dashboard():
 
     checkins = load_checkins()
     cards = ""
+    pr_week_html = ""
     recent_activity = build_recent_workout_activity()
 
     total_checkins = len(checkins)
-    clients = sorted(
-        set(checkin["client"] for checkin in checkins)
-    )
-    total_clients = len(clients)
+
+    client_names = {
+        checkin["client"].strip().lower()
+        for checkin in checkins
+    }
+    total_clients = len(client_names)
+
+    latest_checkins_for_stats = {}
+
+    for checkin in checkins:
+        client_key = checkin["client"].strip().lower()
+        latest_checkins_for_stats[client_key] = checkin
 
     follow_up = sum(
         1
-        for checkin in checkins
+        for checkin in latest_checkins_for_stats.values()
         if (
             datetime.now()
             - datetime.fromisoformat(checkin["date"])
@@ -818,9 +827,27 @@ def dashboard():
         {stats_html}
         """
 
+    latest_checkins = {}
+
+    for checkin_id, checkin in enumerate(checkins):
+        client_key = checkin["client"].strip().lower()
+        latest_checkins[client_key] = (checkin_id, checkin)
+
     for checkin_id, checkin in reversed(
-        list(enumerate(checkins))
+        list(latest_checkins.values())
     ):
+        pr_week_html += f"""
+        <div class="card">
+            <p><strong>{checkin['client']}</strong></p>
+
+            <p>
+                <a
+                    href="/workout?password={COACH_PASSWORD}&client={checkin['client']}">
+                    🏋️ Log PR
+                </a>
+            </p>
+        </div>
+        """
         risk, color = calculate_risk_level(checkin)
 
         checkin_date = datetime.fromisoformat(checkin["date"])
@@ -924,6 +951,12 @@ def dashboard():
     <hr>
 
     {recent_activity}
+
+    <hr>
+
+    <h2>⭐ PR Week Today</h2>
+
+    {pr_week_html}
 
     <hr>
 
