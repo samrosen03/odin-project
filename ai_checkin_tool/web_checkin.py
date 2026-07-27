@@ -425,6 +425,25 @@ def build_recent_workout_activity():
 
     return activity_html
 
+def get_workout_stats(client_name):
+    workouts = load_workouts()
+
+    client_workouts = [
+        workout
+        for workout in workouts
+        if workout["client"].strip().lower()
+        == client_name.strip().lower()
+    ]
+
+    total_workouts = len(client_workouts)
+
+    total_prs = sum(
+        1
+        for workout in client_workouts
+        if workout.get("is_pr")
+    )
+
+    return total_workouts, total_prs
 
 @app.route("/")
 def home():
@@ -849,7 +868,9 @@ def dashboard():
         </div>
         """
         risk, color = calculate_risk_level(checkin)
-
+        total_workouts, total_prs = get_workout_stats(
+    checkin["client"]
+)
         checkin_date = datetime.fromisoformat(checkin["date"])
         days_since = (datetime.now() - checkin_date).days
 
@@ -889,6 +910,15 @@ def dashboard():
 
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
             <p><strong>Weight:</strong> {checkin['weight']}</p>
+            <p>
+    <strong>🏋️ Workouts:</strong>
+    {total_workouts}
+</p>
+
+<p>
+    <strong>⭐ PRs:</strong>
+    {total_prs}
+</p>
             <p>
                 <strong>Goal:</strong>
                 {checkin.get('goal', 'Not set')}
