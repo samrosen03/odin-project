@@ -425,6 +425,23 @@ def build_recent_workout_activity():
 
     return activity_html
 
+
+def get_latest_workout(client_name):
+    workouts = load_workouts()
+
+    client_workouts = [
+        workout
+        for workout in workouts
+        if workout.get("client", "").strip().lower()
+        == client_name.strip().lower()
+    ]
+
+    if not client_workouts:
+        return None
+
+    return client_workouts[-1]
+
+
 def get_workout_stats(client_name):
     workouts = load_workouts()
 
@@ -444,6 +461,7 @@ def get_workout_stats(client_name):
     )
 
     return total_workouts, total_prs
+
 
 @app.route("/")
 def home():
@@ -867,10 +885,43 @@ def dashboard():
             </p>
         </div>
         """
+
         risk, color = calculate_risk_level(checkin)
-        total_workouts, total_prs = get_workout_stats(
-    checkin["client"]
-)
+        latest_workout = get_latest_workout(checkin["client"])
+
+        latest_workout_html = """
+        <p>
+            <strong>Latest Workout:</strong>
+            No workouts logged yet.
+        </p>
+        """
+
+        if latest_workout:
+            pr_badge = " ⭐ PR" if latest_workout.get("is_pr") else ""
+
+            latest_workout_html = f"""
+            <div class="client-workout-summary">
+                <h3>🏋️ Latest Workout</h3>
+
+                <p>
+                    <strong>Exercise:</strong>
+                    {latest_workout['exercise']}{pr_badge}
+                </p>
+
+                <p>
+                    <strong>Result:</strong>
+                    {latest_workout['weight']} × {latest_workout['reps']}
+                </p>
+
+                <p>
+                    <strong>Date:</strong>
+                    {latest_workout['date'][:10]}
+                </p>
+            </div>
+            """
+
+        total_workouts, total_prs = get_workout_stats(checkin["client"])
+
         checkin_date = datetime.fromisoformat(checkin["date"])
         days_since = (datetime.now() - checkin_date).days
 
@@ -910,28 +961,35 @@ def dashboard():
 
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
             <p><strong>Weight:</strong> {checkin['weight']}</p>
-            <p>
-    <strong>🏋️ Workouts:</strong>
-    {total_workouts}
-</p>
 
-<p>
-    <strong>⭐ PRs:</strong>
-    {total_prs}
-</p>
+            <p>
+                <strong>🏋️ Workouts:</strong>
+                {total_workouts}
+            </p>
+
+            <p>
+                <strong>⭐ PRs:</strong>
+                {total_prs}
+            </p>
+
             <p>
                 <strong>Goal:</strong>
                 {checkin.get('goal', 'Not set')}
             </p>
+
             <p><strong>Energy:</strong> {checkin['energy']}/10</p>
             <p><strong>Sleep:</strong> {checkin['sleep']}/10</p>
+
             <p>
                 <strong>Nutrition:</strong>
                 {checkin['nutrition']}/10
             </p>
+
             <p><strong>Stress:</strong> {checkin['stress']}/10</p>
             <p><strong>Win:</strong> {checkin['win']}</p>
             <p><strong>Struggle:</strong> {checkin['struggle']}</p>
+
+            {latest_workout_html}
 
             <p>
                 <strong>Coach Note:</strong>
