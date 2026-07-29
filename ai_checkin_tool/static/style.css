@@ -422,3 +422,158 @@ button {
     font-size:34px;
     font-weight:700;
 }
+/* =========================================
+   COACH DASHBOARD CLIENT CARDS
+========================================= */
+
+.card {
+    border: 1px solid #e5e7eb;
+    border-left: 5px solid #2563eb;
+    padding: 24px;
+    margin: 22px 0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.11);
+}
+
+.card h2 {
+    margin-top: 0;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.card h2 a {
+    color: #111827;
+}
+
+.card h2 a:hover {
+    color: #2563eb;
+}
+
+.card p {
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+/* Latest workout section inside each client card */
+
+.client-workout-summary {
+    margin: 20px 0;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+}
+
+.client-workout-summary h3 {
+    margin: 0 0 14px;
+    color: #1d4ed8;
+}
+
+.client-workout-summary p {
+    margin: 8px 0;
+}
+
+/* Coach note form inside client cards */
+
+.card form {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.card form input {
+    margin-bottom: 10px;
+}
+
+.card form button {
+    width: auto;
+    min-width: 130px;
+}
+
+/* Dashboard section headings */
+
+.container > h2 {
+    margin-top: 40px;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Improve dashboard statistics */
+
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 18px;
+    margin: 28px 0 36px;
+}
+
+.stat-card {
+    background: #ffffff;
+    padding: 22px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
+}
+
+.stat-card h3 {
+    margin: 0 0 10px;
+    color: #6b7280;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card p {
+    margin: 0;
+    color: #111827;
+    font-size: 34px;
+    font-weight: 800;
+}
+
+/* Mobile dashboard improvements */
+
+@media (max-width: 600px) {
+    .card {
+        padding: 18px;
+        margin: 16px 0;
+    }
+
+    .client-workout-summary {
+        padding: 15px;
+    }
+
+    .card form button {
+        width: 100%;
+    }
+
+    .stats-bar {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 16px 10px;
+    }
+
+    .stat-card p {
+        font-size: 27px;
+    }
+}
+
+@media (max-width: 400px) {
+    .stats-bar {
+        grid-template-columns: 1fr;
+    }
+}

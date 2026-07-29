@@ -462,6 +462,24 @@ def get_workout_stats(client_name):
 
     return total_workouts, total_prs
 
+def get_client_status(checkin):
+    energy = int(checkin["energy"])
+    sleep = int(checkin["sleep"])
+    stress = int(checkin["stress"])
+
+    checkin_date = datetime.fromisoformat(checkin["date"])
+    days_since = (datetime.now() - checkin_date).days
+
+    if days_since >= 14:
+        return "🔴 High Priority"
+
+    if stress >= 8 or energy <= 4 or sleep <= 4:
+        return "🔴 High Priority"
+
+    if days_since >= 7:
+        return "🟡 Needs Check-In"
+
+    return "🟢 On Track"
 
 @app.route("/")
 def home():
@@ -887,6 +905,7 @@ def dashboard():
         """
 
         risk, color = calculate_risk_level(checkin)
+        status = get_client_status(checkin)
         latest_workout = get_latest_workout(checkin["client"])
 
         latest_workout_html = """
@@ -938,7 +957,10 @@ def dashboard():
                     {checkin['client']}
                 </a>
             </h2>
-
+<p>
+    <strong>Status:</strong>
+    {status}
+</p>
             <p>
                 <strong>Risk Level:</strong>
 
