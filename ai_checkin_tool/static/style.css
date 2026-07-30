@@ -577,3 +577,19 @@ button {
         grid-template-columns: 1fr;
     }
 }
+.client-pr-summary {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 14px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+}
+
+.client-pr-summary h3 {
+    margin-top: 0;
+    color: #c2410c;
+}
+
+.client-pr-summary p {
+    margin: 10px 0;
+}

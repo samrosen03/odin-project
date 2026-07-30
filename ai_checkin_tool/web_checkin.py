@@ -462,6 +462,24 @@ def get_workout_stats(client_name):
 
     return total_workouts, total_prs
 
+
+def get_client_prs(client_name):
+    workouts = load_workouts()
+
+    prs = {}
+
+    for workout in workouts:
+        if workout["client"].strip().lower() != client_name.strip().lower():
+            continue
+
+        if not workout.get("is_pr"):
+            continue
+
+        prs[workout["exercise"]] = workout
+
+    return prs
+
+
 def get_client_status(checkin):
     energy = int(checkin["energy"])
     sleep = int(checkin["sleep"])
@@ -480,6 +498,7 @@ def get_client_status(checkin):
         return "🟡 Needs Check-In"
 
     return "🟢 On Track"
+
 
 @app.route("/")
 def home():
@@ -939,7 +958,26 @@ def dashboard():
             </div>
             """
 
-        total_workouts, total_prs = get_workout_stats(checkin["client"])
+        total_workouts, total_prs = get_workout_stats(
+            checkin["client"]
+        )
+
+        client_prs = get_client_prs(
+            checkin["client"]
+        )
+
+        pr_summary_html = ""
+
+        for exercise, workout in sorted(client_prs.items()):
+            pr_summary_html += f"""
+            <p>
+                <strong>{exercise}</strong><br>
+                {workout['weight']} × {workout['reps']}
+            </p>
+            """
+
+        if not pr_summary_html:
+            pr_summary_html = "<p>No PRs yet.</p>"
 
         checkin_date = datetime.fromisoformat(checkin["date"])
         days_since = (datetime.now() - checkin_date).days
@@ -957,10 +995,12 @@ def dashboard():
                     {checkin['client']}
                 </a>
             </h2>
-<p>
-    <strong>Status:</strong>
-    {status}
-</p>
+
+            <p>
+                <strong>Status:</strong>
+                {status}
+            </p>
+
             <p>
                 <strong>Risk Level:</strong>
 
@@ -1012,6 +1052,12 @@ def dashboard():
             <p><strong>Struggle:</strong> {checkin['struggle']}</p>
 
             {latest_workout_html}
+
+            <div class="client-pr-summary">
+                <h3>🏆 Current PRs</h3>
+
+                {pr_summary_html}
+            </div>
 
             <p>
                 <strong>Coach Note:</strong>
