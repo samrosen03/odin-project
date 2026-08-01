@@ -593,3 +593,21 @@ button {
 .client-pr-summary p {
     margin: 10px 0;
 }
+.client-goal-card{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    border-radius:14px;
+    padding:18px;
+    margin:18px 0;
+}
+
+.client-goal-card h3{
+    margin:0 0 10px;
+    color:#1d4ed8;
+}
+
+.client-goal-card p{
+    margin:0;
+    font-size:17px;
+    font-weight:600;
+}

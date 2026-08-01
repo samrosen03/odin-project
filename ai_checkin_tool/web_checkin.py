@@ -1034,11 +1034,16 @@ def dashboard():
                 {total_prs}
             </p>
 
-            <p>
-                <strong>Goal:</strong>
-                {checkin.get('goal', 'Not set')}
-            </p>
+            
+<div class="client-goal-card">
 
+<h3>🎯 Primary Goal</h3>
+
+<p>
+    {checkin.get("goal", "No goal set")}
+</p>
+
+</div>
             <p><strong>Energy:</strong> {checkin['energy']}/10</p>
             <p><strong>Sleep:</strong> {checkin['sleep']}/10</p>
 
@@ -1274,7 +1279,105 @@ def client_history(client_name):
 
     {history}
     """
+@app.route("/client-dashboard/<client_name>")
+def client_dashboard(client_name):
+    checkins = load_checkins()
 
+    client_checkins = [
+        checkin
+        for checkin in checkins
+        if checkin["client"].strip().lower()
+        == client_name.strip().lower()
+    ]
+
+    if not client_checkins:
+        return f"""
+        <h1>Client Not Found</h1>
+
+        <p>No information was found for {client_name}.</p>
+
+        <a href="/">Back Home</a>
+        """
+
+    latest = client_checkins[-1]
+    latest_workout = get_latest_workout(client_name)
+    client_prs = get_client_prs(client_name)
+
+    workout_html = """
+    <p>No workouts logged yet.</p>
+    """
+
+    if latest_workout:
+        pr_badge = " ⭐ PR" if latest_workout.get("is_pr") else ""
+
+        workout_html = f"""
+        <div class="client-workout-summary">
+            <h3>🏋️ Latest Workout</h3>
+
+            <p>
+                <strong>{latest_workout['exercise']}</strong>
+                {pr_badge}
+            </p>
+
+            <p>
+                {latest_workout['weight']} ×
+                {latest_workout['reps']}
+            </p>
+
+            <p>{latest_workout['date'][:10]}</p>
+        </div>
+        """
+
+    prs_html = ""
+
+    for exercise, workout in sorted(client_prs.items()):
+        prs_html += f"""
+        <p>
+            <strong>{exercise}</strong><br>
+            {workout['weight']} × {workout['reps']}
+        </p>
+        """
+
+    if not prs_html:
+        prs_html = "<p>No PRs logged yet.</p>"
+
+    return f"""
+    <h1>Welcome, {latest['client']}</h1>
+
+    <div class="client-goal-card">
+        <h3>🎯 Your Goal</h3>
+        <p>{latest.get('goal', 'No goal set')}</p>
+    </div>
+
+    <div class="card">
+        <h2>Your Latest Check-In</h2>
+
+        <p><strong>Energy:</strong> {latest['energy']}/10</p>
+        <p><strong>Sleep:</strong> {latest['sleep']}/10</p>
+        <p><strong>Nutrition:</strong> {latest['nutrition']}/10</p>
+        <p><strong>Stress:</strong> {latest['stress']}/10</p>
+        <p><strong>Latest Win:</strong> {latest['win']}</p>
+    </div>
+
+    {workout_html}
+
+    <div class="client-pr-summary">
+        <h2>🏆 Your Current PRs</h2>
+        {prs_html}
+    </div>
+
+    <p>
+        <a href="/checkin?client={latest['client']}">
+            Complete Weekly Check-In
+        </a>
+    </p>
+
+    <p>
+        <a href="/workout?password={COACH_PASSWORD}&client={latest['client']}">
+            Log Workout
+        </a>
+    </p>
+    """
 
 @app.route("/note/<int:checkin_id>", methods=["POST"])
 def add_note(checkin_id):
