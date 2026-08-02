@@ -1063,7 +1063,17 @@ def dashboard():
 
                 {pr_summary_html}
             </div>
-
+            <a
+    class="client-dashboard-link"
+    href="/client-dashboard/{checkin['client']}">
+    👤 Open Client Dashboard
+</a>
+<p>
+    <a
+        href="/client-dashboard/{checkin['client']}">
+        👤 Open Client Dashboard
+    </a>
+</p>
             <p>
                 <strong>Coach Note:</strong>
                 {checkin.get('coach_note', 'None yet')}

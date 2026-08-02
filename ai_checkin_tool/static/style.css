@@ -611,3 +611,17 @@ button {
     font-size:17px;
     font-weight:600;
 }
+.client-dashboard-link {
+    display: inline-block;
+    margin: 16px 0;
+    padding: 11px 16px;
+    background: #2563eb;
+    color: white;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.client-dashboard-link:hover {
+    background: #1d4ed8;
+    color: white;
+}
