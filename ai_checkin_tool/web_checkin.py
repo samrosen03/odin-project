@@ -1058,21 +1058,23 @@ def dashboard():
 
             {latest_workout_html}
 
-            <div class="client-pr-summary">
-                <h3>🏆 Current PRs</h3>
+<div class="client-pr-summary">
+    <h3>🏆 Current PRs</h3>
 
-                {pr_summary_html}
-            </div>
-            <a
-    class="client-dashboard-link"
-    href="/client-dashboard/{checkin['client']}">
-    👤 Open Client Dashboard
-</a>
+    {pr_summary_html}
+</div>
+
 <p>
     <a
+        class="client-dashboard-link"
         href="/client-dashboard/{checkin['client']}">
         👤 Open Client Dashboard
     </a>
+</p>
+
+<p>
+    <strong>Coach Note:</strong>
+    {checkin.get('coach_note', 'None yet')}
 </p>
             <p>
                 <strong>Coach Note:</strong>
