@@ -625,3 +625,16 @@ button {
     background: #1d4ed8;
     color: white;
 }
+.timeline-card{
+    background:white;
+    border-left:4px solid #2563eb;
+    padding:16px;
+    margin:16px 0;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+
+.timeline-card h3{
+    margin-top:0;
+    color:#2563eb;
+}

@@ -1076,10 +1076,6 @@ def dashboard():
     <strong>Coach Note:</strong>
     {checkin.get('coach_note', 'None yet')}
 </p>
-            <p>
-                <strong>Coach Note:</strong>
-                {checkin.get('coach_note', 'None yet')}
-            </p>
 
             <form
                 method="POST"
@@ -1315,6 +1311,20 @@ def client_dashboard(client_name):
     latest_workout = get_latest_workout(client_name)
     client_prs = get_client_prs(client_name)
 
+    timeline_html = ""
+
+    for checkin in reversed(client_checkins[-5:]):
+        timeline_html += f"""
+        <div class="timeline-card">
+            <h3>{checkin['date'][:10]}</h3>
+
+            <p>⚡ Energy: {checkin['energy']}/10</p>
+            <p>😴 Sleep: {checkin['sleep']}/10</p>
+            <p>🥗 Nutrition: {checkin['nutrition']}/10</p>
+            <p>😬 Stress: {checkin['stress']}/10</p>
+        </div>
+        """
+
     workout_html = """
     <p>No workouts logged yet.</p>
     """
@@ -1378,6 +1388,10 @@ def client_dashboard(client_name):
         {prs_html}
     </div>
 
+    <h2>📅 Recent Check-Ins</h2>
+
+    {timeline_html}
+
     <p>
         <a href="/checkin?client={latest['client']}">
             Complete Weekly Check-In
@@ -1390,6 +1404,7 @@ def client_dashboard(client_name):
         </a>
     </p>
     """
+
 
 @app.route("/note/<int:checkin_id>", methods=["POST"])
 def add_note(checkin_id):
