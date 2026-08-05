@@ -638,3 +638,28 @@ button {
     margin-top:0;
     color:#2563eb;
 }
+.progress-score-card {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    padding: 24px;
+    border-radius: 18px;
+    text-align: center;
+    margin: 20px 0;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.25);
+}
+
+.progress-score-card h1 {
+    color: white;
+    font-size: 52px;
+    margin: 10px 0;
+}
+
+.progress-score-card h2 {
+    color: white;
+    margin-top: 0;
+}
+
+.progress-score-card p {
+    font-size: 26px;
+    margin: 0;
+}

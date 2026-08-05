@@ -178,6 +178,32 @@ def calculate_compliance_score(checkin):
     return round(score / 40 * 100)
 
 
+def build_progress_score(checkin):
+    score = calculate_compliance_score(checkin)
+
+    if score >= 90:
+        stars = "⭐⭐⭐⭐⭐"
+    elif score >= 80:
+        stars = "⭐⭐⭐⭐☆"
+    elif score >= 70:
+        stars = "⭐⭐⭐☆☆"
+    elif score >= 60:
+        stars = "⭐⭐☆☆☆"
+    else:
+        stars = "⭐☆☆☆☆"
+
+    return f"""
+    <div class="progress-score-card">
+
+        <h2>📈 Progress Score</h2>
+
+        <h1>{score}%</h1>
+
+        <p>{stars}</p>
+
+    </div>
+    """
+
 def calculate_risk_level(checkin):
     energy = int(checkin["energy"])
     sleep = int(checkin["sleep"])
@@ -255,7 +281,6 @@ def build_client_summary(client_checkins):
     )
 
     latest = client_checkins[-1][1]
-
     return f"""
     <h2>📊 Client Summary</h2>
 
@@ -1287,6 +1312,8 @@ def client_history(client_name):
 
     {history}
     """
+
+
 @app.route("/client-dashboard/<client_name>")
 def client_dashboard(client_name):
     checkins = load_checkins()
@@ -1308,6 +1335,7 @@ def client_dashboard(client_name):
         """
 
     latest = client_checkins[-1]
+    progress_score = build_progress_score(latest)
     latest_workout = get_latest_workout(client_name)
     client_prs = get_client_prs(client_name)
 
@@ -1370,6 +1398,8 @@ def client_dashboard(client_name):
         <h3>🎯 Your Goal</h3>
         <p>{latest.get('goal', 'No goal set')}</p>
     </div>
+
+    {progress_score}
 
     <div class="card">
         <h2>Your Latest Check-In</h2>
