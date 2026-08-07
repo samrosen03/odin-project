@@ -1069,15 +1069,29 @@ def dashboard():
 </p>
 
 </div>
-            <p><strong>Energy:</strong> {checkin['energy']}/10</p>
-            <p><strong>Sleep:</strong> {checkin['sleep']}/10</p>
+            <div class="metric-grid">
 
-            <p>
-                <strong>Nutrition:</strong>
-                {checkin['nutrition']}/10
-            </p>
+    <div class="metric-tile metric-energy">
+        <span class="metric-label">⚡ Energy</span>
+        <strong>{checkin['energy']}/10</strong>
+    </div>
 
-            <p><strong>Stress:</strong> {checkin['stress']}/10</p>
+    <div class="metric-tile metric-sleep">
+        <span class="metric-label">😴 Sleep</span>
+        <strong>{checkin['sleep']}/10</strong>
+    </div>
+
+    <div class="metric-tile metric-nutrition">
+        <span class="metric-label">🥗 Nutrition</span>
+        <strong>{checkin['nutrition']}/10</strong>
+    </div>
+
+    <div class="metric-tile metric-stress">
+        <span class="metric-label">🧠 Stress</span>
+        <strong>{checkin['stress']}/10</strong>
+    </div>
+
+</div>
             <p><strong>Win:</strong> {checkin['win']}</p>
             <p><strong>Struggle:</strong> {checkin['struggle']}</p>
 
