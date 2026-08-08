@@ -1014,17 +1014,26 @@ def dashboard():
 
         cards += f"""
         <div class="card">
-            <h2>
-                <a
-                    href="/client/{checkin['client']}?password={COACH_PASSWORD}">
-                    {checkin['client']}
-                </a>
-            </h2>
+            <div class="client-card-header">
 
-            <p>
-                <strong>Status:</strong>
-                {status}
-            </p>
+    <div>
+        <h2>
+            <a
+                href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+                {checkin['client']}
+            </a>
+        </h2>
+
+        <p class="client-subtitle">
+            🎯 {checkin.get("goal", "No goal set")}
+        </p>
+    </div>
+
+    <span class="status-pill">
+        {status}
+    </span>
+
+</div>
 
             <p>
                 <strong>Risk Level:</strong>
