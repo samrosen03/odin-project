@@ -178,32 +178,6 @@ def calculate_compliance_score(checkin):
     return round(score / 40 * 100)
 
 
-def build_progress_score(checkin):
-    score = calculate_compliance_score(checkin)
-
-    if score >= 90:
-        stars = "⭐⭐⭐⭐⭐"
-    elif score >= 80:
-        stars = "⭐⭐⭐⭐☆"
-    elif score >= 70:
-        stars = "⭐⭐⭐☆☆"
-    elif score >= 60:
-        stars = "⭐⭐☆☆☆"
-    else:
-        stars = "⭐☆☆☆☆"
-
-    return f"""
-    <div class="progress-score-card">
-
-        <h2>📈 Progress Score</h2>
-
-        <h1>{score}%</h1>
-
-        <p>{stars}</p>
-
-    </div>
-    """
-
 def calculate_risk_level(checkin):
     energy = int(checkin["energy"])
     sleep = int(checkin["sleep"])
@@ -281,6 +255,7 @@ def build_client_summary(client_checkins):
     )
 
     latest = client_checkins[-1][1]
+
     return f"""
     <h2>📊 Client Summary</h2>
 
@@ -414,115 +389,6 @@ def build_workout_history(client_name):
         """
 
     return workout_html
-
-
-def build_recent_workout_activity():
-    workouts = load_workouts()
-
-    if not workouts:
-        return """
-        <h2>🏋️ Recent Workout Activity</h2>
-        <p>No workouts logged yet.</p>
-        """
-
-    activity_html = "<h2>🏋️ Recent Workout Activity</h2>"
-
-    for workout in reversed(workouts[-5:]):
-        pr_badge = " ⭐ New PR" if workout.get("is_pr") else ""
-
-        activity_html += f"""
-        <div class="card">
-            <p>
-                <strong>{workout['client']}</strong>
-                {pr_badge}
-            </p>
-
-            <p>
-                {workout['exercise']}:
-                {workout['weight']} × {workout['reps']}
-            </p>
-
-            <p>
-                <small>{workout['date'][:10]}</small>
-            </p>
-        </div>
-        """
-
-    return activity_html
-
-
-def get_latest_workout(client_name):
-    workouts = load_workouts()
-
-    client_workouts = [
-        workout
-        for workout in workouts
-        if workout.get("client", "").strip().lower()
-        == client_name.strip().lower()
-    ]
-
-    if not client_workouts:
-        return None
-
-    return client_workouts[-1]
-
-
-def get_workout_stats(client_name):
-    workouts = load_workouts()
-
-    client_workouts = [
-        workout
-        for workout in workouts
-        if workout["client"].strip().lower()
-        == client_name.strip().lower()
-    ]
-
-    total_workouts = len(client_workouts)
-
-    total_prs = sum(
-        1
-        for workout in client_workouts
-        if workout.get("is_pr")
-    )
-
-    return total_workouts, total_prs
-
-
-def get_client_prs(client_name):
-    workouts = load_workouts()
-
-    prs = {}
-
-    for workout in workouts:
-        if workout["client"].strip().lower() != client_name.strip().lower():
-            continue
-
-        if not workout.get("is_pr"):
-            continue
-
-        prs[workout["exercise"]] = workout
-
-    return prs
-
-
-def get_client_status(checkin):
-    energy = int(checkin["energy"])
-    sleep = int(checkin["sleep"])
-    stress = int(checkin["stress"])
-
-    checkin_date = datetime.fromisoformat(checkin["date"])
-    days_since = (datetime.now() - checkin_date).days
-
-    if days_since >= 14:
-        return "🔴 High Priority"
-
-    if stress >= 8 or energy <= 4 or sleep <= 4:
-        return "🔴 High Priority"
-
-    if days_since >= 7:
-        return "🟡 Needs Check-In"
-
-    return "🟢 On Track"
 
 
 @app.route("/")
@@ -829,26 +695,16 @@ def dashboard():
 
     checkins = load_checkins()
     cards = ""
-    pr_week_html = ""
-    recent_activity = build_recent_workout_activity()
 
     total_checkins = len(checkins)
-
-    client_names = {
-        checkin["client"].strip().lower()
-        for checkin in checkins
-    }
-    total_clients = len(client_names)
-
-    latest_checkins_for_stats = {}
-
-    for checkin in checkins:
-        client_key = checkin["client"].strip().lower()
-        latest_checkins_for_stats[client_key] = checkin
+    clients = sorted(
+        set(checkin["client"] for checkin in checkins)
+    )
+    total_clients = len(clients)
 
     follow_up = sum(
         1
-        for checkin in latest_checkins_for_stats.values()
+        for checkin in checkins
         if (
             datetime.now()
             - datetime.fromisoformat(checkin["date"])
@@ -926,83 +782,10 @@ def dashboard():
         {stats_html}
         """
 
-    latest_checkins = {}
-
-    for checkin_id, checkin in enumerate(checkins):
-        client_key = checkin["client"].strip().lower()
-        latest_checkins[client_key] = (checkin_id, checkin)
-
     for checkin_id, checkin in reversed(
-        list(latest_checkins.values())
+        list(enumerate(checkins))
     ):
-        pr_week_html += f"""
-        <div class="card">
-            <p><strong>{checkin['client']}</strong></p>
-
-            <p>
-                <a
-                    href="/workout?password={COACH_PASSWORD}&client={checkin['client']}">
-                    🏋️ Log PR
-                </a>
-            </p>
-        </div>
-        """
-
         risk, color = calculate_risk_level(checkin)
-        status = get_client_status(checkin)
-        latest_workout = get_latest_workout(checkin["client"])
-
-        latest_workout_html = """
-        <p>
-            <strong>Latest Workout:</strong>
-            No workouts logged yet.
-        </p>
-        """
-
-        if latest_workout:
-            pr_badge = " ⭐ PR" if latest_workout.get("is_pr") else ""
-
-            latest_workout_html = f"""
-            <div class="client-workout-summary">
-                <h3>🏋️ Latest Workout</h3>
-
-                <p>
-                    <strong>Exercise:</strong>
-                    {latest_workout['exercise']}{pr_badge}
-                </p>
-
-                <p>
-                    <strong>Result:</strong>
-                    {latest_workout['weight']} × {latest_workout['reps']}
-                </p>
-
-                <p>
-                    <strong>Date:</strong>
-                    {latest_workout['date'][:10]}
-                </p>
-            </div>
-            """
-
-        total_workouts, total_prs = get_workout_stats(
-            checkin["client"]
-        )
-
-        client_prs = get_client_prs(
-            checkin["client"]
-        )
-
-        pr_summary_html = ""
-
-        for exercise, workout in sorted(client_prs.items()):
-            pr_summary_html += f"""
-            <p>
-                <strong>{exercise}</strong><br>
-                {workout['weight']} × {workout['reps']}
-            </p>
-            """
-
-        if not pr_summary_html:
-            pr_summary_html = "<p>No PRs yet.</p>"
 
         checkin_date = datetime.fromisoformat(checkin["date"])
         days_since = (datetime.now() - checkin_date).days
@@ -1014,26 +797,12 @@ def dashboard():
 
         cards += f"""
         <div class="card">
-            <div class="client-card-header">
-
-    <div>
-        <h2>
-            <a
-                href="/client/{checkin['client']}?password={COACH_PASSWORD}">
-                {checkin['client']}
-            </a>
-        </h2>
-
-        <p class="client-subtitle">
-            🎯 {checkin.get("goal", "No goal set")}
-        </p>
-    </div>
-
-    <span class="status-pill">
-        {status}
-    </span>
-
-</div>
+            <h2>
+                <a
+                    href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+                    {checkin['client']}
+                </a>
+            </h2>
 
             <p>
                 <strong>Risk Level:</strong>
@@ -1057,73 +826,24 @@ def dashboard():
 
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
             <p><strong>Weight:</strong> {checkin['weight']}</p>
-
             <p>
-                <strong>🏋️ Workouts:</strong>
-                {total_workouts}
+                <strong>Goal:</strong>
+                {checkin.get('goal', 'Not set')}
             </p>
-
+            <p><strong>Energy:</strong> {checkin['energy']}/10</p>
+            <p><strong>Sleep:</strong> {checkin['sleep']}/10</p>
             <p>
-                <strong>⭐ PRs:</strong>
-                {total_prs}
+                <strong>Nutrition:</strong>
+                {checkin['nutrition']}/10
             </p>
-
-            
-<div class="client-goal-card">
-
-<h3>🎯 Primary Goal</h3>
-
-<p>
-    {checkin.get("goal", "No goal set")}
-</p>
-
-</div>
-            <div class="metric-grid">
-
-    <div class="metric-tile metric-energy">
-        <span class="metric-label">⚡ Energy</span>
-        <strong>{checkin['energy']}/10</strong>
-    </div>
-
-    <div class="metric-tile metric-sleep">
-        <span class="metric-label">😴 Sleep</span>
-        <strong>{checkin['sleep']}/10</strong>
-    </div>
-
-    <div class="metric-tile metric-nutrition">
-        <span class="metric-label">🥗 Nutrition</span>
-        <strong>{checkin['nutrition']}/10</strong>
-    </div>
-
-    <div class="metric-tile metric-stress">
-        <span class="metric-label">🧠 Stress</span>
-        <strong>{checkin['stress']}/10</strong>
-    </div>
-
-</div>
+            <p><strong>Stress:</strong> {checkin['stress']}/10</p>
             <p><strong>Win:</strong> {checkin['win']}</p>
             <p><strong>Struggle:</strong> {checkin['struggle']}</p>
 
-            {latest_workout_html}
-
-<div class="client-pr-summary">
-    <h3>🏆 Current PRs</h3>
-
-    {pr_summary_html}
-</div>
-
-<p>
-    <a
-        class="client-dashboard-link"
-        href="/client-dashboard/{checkin['client']}">
-        👤 Open Client Dashboard
-    </a>
-</p>
-
-<p>
-    <strong>Coach Note:</strong>
-    {checkin.get('coach_note', 'None yet')}
-</p>
+            <p>
+                <strong>Coach Note:</strong>
+                {checkin.get('coach_note', 'None yet')}
+            </p>
 
             <form
                 method="POST"
@@ -1164,20 +884,6 @@ def dashboard():
     </p>
 
     {stats_html}
-
-    <hr>
-
-    {recent_activity}
-
-    <hr>
-
-    <h2>⭐ PR Week Today</h2>
-
-    {pr_week_html}
-
-    <hr>
-
-    <h2>Client Overview</h2>
 
     {cards}
     """
@@ -1334,128 +1040,6 @@ def client_history(client_name):
     <h2>✅ Check-In History</h2>
 
     {history}
-    """
-
-
-@app.route("/client-dashboard/<client_name>")
-def client_dashboard(client_name):
-    checkins = load_checkins()
-
-    client_checkins = [
-        checkin
-        for checkin in checkins
-        if checkin["client"].strip().lower()
-        == client_name.strip().lower()
-    ]
-
-    if not client_checkins:
-        return f"""
-        <h1>Client Not Found</h1>
-
-        <p>No information was found for {client_name}.</p>
-
-        <a href="/">Back Home</a>
-        """
-
-    latest = client_checkins[-1]
-    progress_score = build_progress_score(latest)
-    latest_workout = get_latest_workout(client_name)
-    client_prs = get_client_prs(client_name)
-
-    timeline_html = ""
-
-    for checkin in reversed(client_checkins[-5:]):
-        timeline_html += f"""
-        <div class="timeline-card">
-            <h3>{checkin['date'][:10]}</h3>
-
-            <p>⚡ Energy: {checkin['energy']}/10</p>
-            <p>😴 Sleep: {checkin['sleep']}/10</p>
-            <p>🥗 Nutrition: {checkin['nutrition']}/10</p>
-            <p>😬 Stress: {checkin['stress']}/10</p>
-        </div>
-        """
-
-    workout_html = """
-    <p>No workouts logged yet.</p>
-    """
-
-    if latest_workout:
-        pr_badge = " ⭐ PR" if latest_workout.get("is_pr") else ""
-
-        workout_html = f"""
-        <div class="client-workout-summary">
-            <h3>🏋️ Latest Workout</h3>
-
-            <p>
-                <strong>{latest_workout['exercise']}</strong>
-                {pr_badge}
-            </p>
-
-            <p>
-                {latest_workout['weight']} ×
-                {latest_workout['reps']}
-            </p>
-
-            <p>{latest_workout['date'][:10]}</p>
-        </div>
-        """
-
-    prs_html = ""
-
-    for exercise, workout in sorted(client_prs.items()):
-        prs_html += f"""
-        <p>
-            <strong>{exercise}</strong><br>
-            {workout['weight']} × {workout['reps']}
-        </p>
-        """
-
-    if not prs_html:
-        prs_html = "<p>No PRs logged yet.</p>"
-
-    return f"""
-    <h1>Welcome, {latest['client']}</h1>
-
-    <div class="client-goal-card">
-        <h3>🎯 Your Goal</h3>
-        <p>{latest.get('goal', 'No goal set')}</p>
-    </div>
-
-    {progress_score}
-
-    <div class="card">
-        <h2>Your Latest Check-In</h2>
-
-        <p><strong>Energy:</strong> {latest['energy']}/10</p>
-        <p><strong>Sleep:</strong> {latest['sleep']}/10</p>
-        <p><strong>Nutrition:</strong> {latest['nutrition']}/10</p>
-        <p><strong>Stress:</strong> {latest['stress']}/10</p>
-        <p><strong>Latest Win:</strong> {latest['win']}</p>
-    </div>
-
-    {workout_html}
-
-    <div class="client-pr-summary">
-        <h2>🏆 Your Current PRs</h2>
-        {prs_html}
-    </div>
-
-    <h2>📅 Recent Check-Ins</h2>
-
-    {timeline_html}
-
-    <p>
-        <a href="/checkin?client={latest['client']}">
-            Complete Weekly Check-In
-        </a>
-    </p>
-
-    <p>
-        <a href="/workout?password={COACH_PASSWORD}&client={latest['client']}">
-            Log Workout
-        </a>
-    </p>
     """
 
 
