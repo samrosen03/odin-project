@@ -425,3 +425,102 @@ button:hover, .button:hover, .client-dashboard-link:hover { color: white; transf
         align-self: flex-start;
     }
 }
+/* =========================================
+   COACH DASHBOARD QUICK ACTIONS
+========================================= */
+
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 24px 0 32px;
+}
+
+.dashboard-action {
+    min-height: 105px;
+    padding: 18px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 8px;
+
+    border-radius: 16px;
+
+    color: white;
+
+    font-weight: 700;
+
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.dashboard-action span {
+    font-size: 26px;
+}
+
+.dashboard-action strong {
+    font-size: 15px;
+}
+
+.dashboard-action:hover {
+    color: white;
+
+    transform: translateY(-4px);
+
+    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
+}
+
+/* Individual colors */
+
+.action-checkin {
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #4f46e5
+    );
+}
+
+.action-workout {
+    background: linear-gradient(
+        135deg,
+        #16a34a,
+        #22c55e
+    );
+}
+
+.action-search {
+    background: linear-gradient(
+        135deg,
+        #7c3aed,
+        #9333ea
+    );
+}
+
+.action-leaderboard {
+    background: linear-gradient(
+        135deg,
+        #ea580c,
+        #f59e0b
+    );
+}
+
+/* Tablet */
+
+@media (max-width: 800px) {
+    .dashboard-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Phone */
+
+@media (max-width: 450px) {
+    .dashboard-actions {
+        grid-template-columns: 1fr;
+    }
+}

@@ -863,26 +863,37 @@ def dashboard():
     return f"""
     <h1>Coach Dashboard</h1>
 
-    <p><a href="/checkin">Submit new check-in</a></p>
+    <div class="dashboard-actions">
 
-    <p>
-        <a href="/workout?password={COACH_PASSWORD}">
-            Log Workout
-        </a>
-    </p>
+    <a
+        class="dashboard-action action-checkin"
+        href="/checkin">
+        <span>📝</span>
+        <strong>New Check-In</strong>
+    </a>
 
-    <p>
-        <a href="/search?password={COACH_PASSWORD}">
-            Search Clients
-        </a>
-    </p>
+    <a
+        class="dashboard-action action-workout"
+        href="/workout?password={COACH_PASSWORD}">
+        <span>🏋️</span>
+        <strong>Log Workout</strong>
+    </a>
 
-    <p>
-        <a href="/leaderboard?password={COACH_PASSWORD}">
-            Client Leaderboard
-        </a>
-    </p>
+    <a
+        class="dashboard-action action-search"
+        href="/search?password={COACH_PASSWORD}">
+        <span>🔎</span>
+        <strong>Search Clients</strong>
+    </a>
 
+    <a
+        class="dashboard-action action-leaderboard"
+        href="/leaderboard?password={COACH_PASSWORD}">
+        <span>🏆</span>
+        <strong>Leaderboard</strong>
+    </a>
+
+</div>
     {stats_html}
 
     {cards}
