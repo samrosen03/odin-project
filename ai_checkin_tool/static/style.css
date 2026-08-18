@@ -524,3 +524,75 @@ button:hover, .button:hover, .client-dashboard-link:hover { color: white; transf
         grid-template-columns: 1fr;
     }
 }
+/* =========================================
+   CLIENT QUICK ACTIONS
+========================================= */
+
+.client-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.client-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 14px;
+
+    border-radius: 11px;
+
+    font-size: 14px;
+    font-weight: 800;
+
+    color: white;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.client-action:hover {
+    color: white;
+    transform: translateY(-2px);
+}
+
+.action-profile {
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #4f46e5
+    );
+}
+
+.action-log {
+    background: linear-gradient(
+        135deg,
+        #16a34a,
+        #22c55e
+    );
+}
+
+.action-checkin-small {
+    background: linear-gradient(
+        135deg,
+        #7c3aed,
+        #9333ea
+    );
+}
+
+.client-action:hover {
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
+}
+
+@media (max-width: 520px) {
+    .client-quick-actions {
+        flex-direction: column;
+    }
+
+    .client-action {
+        width: 100%;
+    }
+}

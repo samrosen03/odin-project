@@ -840,6 +840,26 @@ def dashboard():
             <p><strong>Win:</strong> {checkin['win']}</p>
             <p><strong>Struggle:</strong> {checkin['struggle']}</p>
 
+            <div class="client-quick-actions">
+                <a
+                    class="client-action action-profile"
+                    href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+                    👤 Coach Profile
+                </a>
+
+                <a
+                    class="client-action action-log"
+                    href="/workout?password={COACH_PASSWORD}&client={checkin['client']}">
+                    🏋️ Log Workout
+                </a>
+
+                <a
+                    class="client-action action-checkin-small"
+                    href="/checkin?client={checkin['client']}">
+                    📝 Check-In
+                </a>
+            </div>
+
             <p>
                 <strong>Coach Note:</strong>
                 {checkin.get('coach_note', 'None yet')}
