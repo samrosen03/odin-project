@@ -819,13 +819,21 @@ def dashboard():
                 </span>
             </p>
 
-            <p>
-                <strong>Last Check-In:</strong>
-                {days_since} day(s) ago{followup}
-            </p>
+            <div class="client-summary-strip">
+
+                <div class="summary-item">
+                    <span>Last Check-In</span>
+                    <strong>{days_since}d</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Weight</span>
+                    <strong>{checkin['weight']}</strong>
+                </div>
+
+            </div>
 
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
-            <p><strong>Weight:</strong> {checkin['weight']}</p>
             <p>
                 <strong>Goal:</strong>
                 {checkin.get('goal', 'Not set')}
