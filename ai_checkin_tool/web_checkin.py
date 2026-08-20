@@ -787,6 +787,22 @@ def dashboard():
     ):
         risk, color = calculate_risk_level(checkin)
 
+        client_workouts = [
+            workout
+            for workout in load_workouts()
+            if workout.get("client", "").strip().lower()
+            == checkin["client"].strip().lower()
+        ]
+
+        current_prs = {
+            workout.get("exercise", "").strip().lower()
+            for workout in client_workouts
+            if workout.get("is_pr")
+        }
+
+        total_workouts = len(client_workouts)
+        total_prs = len(current_prs)
+
         checkin_date = datetime.fromisoformat(checkin["date"])
         days_since = (datetime.now() - checkin_date).days
 
@@ -824,6 +840,16 @@ def dashboard():
                 <div class="summary-item">
                     <span>Last Check-In</span>
                     <strong>{days_since}d</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Workouts</span>
+                    <strong>{total_workouts}</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>PRs</span>
+                    <strong>{total_prs}</strong>
                 </div>
 
                 <div class="summary-item">
