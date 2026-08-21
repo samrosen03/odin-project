@@ -803,6 +803,45 @@ def dashboard():
         total_workouts = len(client_workouts)
         total_prs = len(current_prs)
 
+        latest_workout = (
+            client_workouts[-1]
+            if client_workouts
+            else None
+        )
+
+        if latest_workout:
+            latest_workout_html = f"""
+            <div class="dashboard-latest-workout">
+                <span class="latest-workout-label">
+                    🏋️ Latest Workout
+                </span>
+
+                <strong>
+                    {latest_workout['exercise']}
+                </strong>
+
+                <p>
+                    {latest_workout['weight']} lbs
+                    ×
+                    {latest_workout['reps']} reps
+                </p>
+
+                <small>
+                    {latest_workout['date'][:10]}
+                </small>
+            </div>
+            """
+        else:
+            latest_workout_html = """
+            <div class="dashboard-latest-workout workout-empty">
+                <span class="latest-workout-label">
+                    🏋️ Latest Workout
+                </span>
+
+                <p>No workouts logged yet.</p>
+            </div>
+            """
+
         checkin_date = datetime.fromisoformat(checkin["date"])
         days_since = (datetime.now() - checkin_date).days
 
@@ -858,6 +897,8 @@ def dashboard():
                 </div>
 
             </div>
+
+            {latest_workout_html}
 
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
             <p>
