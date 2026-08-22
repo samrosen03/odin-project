@@ -912,8 +912,25 @@ def dashboard():
                 {checkin['nutrition']}/10
             </p>
             <p><strong>Stress:</strong> {checkin['stress']}/10</p>
-            <p><strong>Win:</strong> {checkin['win']}</p>
-            <p><strong>Struggle:</strong> {checkin['struggle']}</p>
+            <div class="coach-insights-grid">
+
+    <div class="coach-insight insight-win">
+        <span class="insight-label">🏆 Weekly Win</span>
+
+        <p>
+            {checkin['win']}
+        </p>
+    </div>
+
+    <div class="coach-insight insight-struggle">
+        <span class="insight-label">🎯 Current Focus</span>
+
+        <p>
+            {checkin['struggle']}
+        </p>
+    </div>
+
+</div>
 
             <div class="client-quick-actions">
                 <a
