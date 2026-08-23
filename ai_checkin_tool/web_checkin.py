@@ -787,6 +787,28 @@ def dashboard():
     ):
         risk, color = calculate_risk_level(checkin)
 
+        attention_items = []
+
+        if int(checkin["sleep"]) <= 5:
+            attention_items.append("low sleep")
+
+        if int(checkin["energy"]) <= 5:
+            attention_items.append("low energy")
+
+        if int(checkin["nutrition"]) <= 5:
+            attention_items.append("nutrition")
+
+        if int(checkin["stress"]) >= 7:
+            attention_items.append("high stress")
+
+        if attention_items:
+            attention_text = ", ".join(attention_items)
+            attention_class = "attention-warning"
+            attention_message = f"⚠️ Needs attention: {attention_text}"
+        else:
+            attention_class = "attention-good"
+            attention_message = "✅ No urgent issues"
+
         client_workouts = [
             workout
             for workout in load_workouts()
@@ -873,6 +895,10 @@ def dashboard():
                     {risk}
                 </span>
             </p>
+
+            <div class="coach-attention {attention_class}">
+                {attention_message}
+            </div>
 
             <div class="client-summary-strip">
 

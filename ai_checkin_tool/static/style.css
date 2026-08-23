@@ -817,3 +817,26 @@ button:hover, .button:hover, .client-dashboard-link:hover { color: white; transf
         grid-template-columns: 1fr;
     }
 }
+/* =========================================
+   COACH ATTENTION BANNER
+========================================= */
+
+.coach-attention {
+    margin: 16px 0 20px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.attention-good {
+    color: #166534;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+}
+
+.attention-warning {
+    color: #9a3412;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+}
