@@ -191,6 +191,16 @@ def calculate_risk_level(checkin):
 
     return "Low", "#16a34a"
 
+def get_risk_priority(checkin):
+    risk, _ = calculate_risk_level(checkin)
+
+    priorities = {
+        "High": 3,
+        "Moderate": 2,
+        "Low": 1,
+    }
+
+    return priorities.get(risk, 0)
 
 def build_trend_html(current, previous):
     if not previous:
@@ -1057,6 +1067,11 @@ def client_history(client_name):
         """
 
     checkins = load_checkins()
+    checkins = sorted(
+    checkins,
+    key=get_risk_priority,
+    reverse=True,
+)
 
     client_checkins = [
         (checkin_id, checkin)
