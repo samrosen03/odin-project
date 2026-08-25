@@ -191,6 +191,7 @@ def calculate_risk_level(checkin):
 
     return "Low", "#16a34a"
 
+
 def get_risk_priority(checkin):
     risk, _ = calculate_risk_level(checkin)
 
@@ -201,6 +202,7 @@ def get_risk_priority(checkin):
     }
 
     return priorities.get(risk, 0)
+
 
 def build_trend_html(current, previous):
     if not previous:
@@ -704,6 +706,20 @@ def dashboard():
         """
 
     checkins = load_checkins()
+    latest_checkins = {}
+
+    for checkin_id, checkin in enumerate(checkins):
+        client_name = checkin["client"].strip().lower()
+
+        latest_checkins[client_name] = (
+            checkin_id,
+            checkin,
+        )
+
+    dashboard_checkins = list(
+        latest_checkins.values()
+    )
+
     cards = ""
 
     total_checkins = len(checkins)
@@ -793,7 +809,7 @@ def dashboard():
         """
 
     for checkin_id, checkin in reversed(
-        list(enumerate(checkins))
+        dashboard_checkins
     ):
         risk, color = calculate_risk_level(checkin)
 
@@ -1067,11 +1083,6 @@ def client_history(client_name):
         """
 
     checkins = load_checkins()
-    checkins = sorted(
-    checkins,
-    key=get_risk_priority,
-    reverse=True,
-)
 
     client_checkins = [
         (checkin_id, checkin)
