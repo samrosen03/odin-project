@@ -720,6 +720,12 @@ def dashboard():
         latest_checkins.values()
     )
 
+    dashboard_checkins = sorted(
+    dashboard_checkins,
+    key=lambda item: get_risk_priority(item[1]),
+    reverse=True,
+)
+
     cards = ""
 
     total_checkins = len(checkins)
@@ -808,9 +814,7 @@ def dashboard():
         {stats_html}
         """
 
-    for checkin_id, checkin in reversed(
-        dashboard_checkins
-    ):
+    for checkin_id, checkin in dashboard_checkins:
         risk, color = calculate_risk_level(checkin)
 
         attention_items = []
