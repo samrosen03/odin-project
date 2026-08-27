@@ -721,10 +721,10 @@ def dashboard():
     )
 
     dashboard_checkins = sorted(
-    dashboard_checkins,
-    key=lambda item: get_risk_priority(item[1]),
-    reverse=True,
-)
+        dashboard_checkins,
+        key=lambda item: get_risk_priority(item[1]),
+        reverse=True,
+    )
 
     cards = ""
 
@@ -956,6 +956,13 @@ def dashboard():
 
             {latest_workout_html}
 
+            <details class="client-details">
+                <summary>
+                    View Coaching Details
+                </summary>
+
+                <div class="client-details-content">
+
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
             <p>
                 <strong>Goal:</strong>
@@ -1025,6 +1032,9 @@ def dashboard():
                     Save Note
                 </button>
             </form>
+
+                </div>
+            </details>
         </div>
         """
 
