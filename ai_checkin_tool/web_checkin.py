@@ -726,6 +726,65 @@ def dashboard():
         reverse=True,
     )
 
+    priority_clients = []
+
+    for checkin_id, checkin in dashboard_checkins:
+        risk, _ = calculate_risk_level(checkin)
+
+        if risk == "High":
+            priority_clients.append(
+                (checkin_id, checkin, risk)
+            )
+
+    if priority_clients:
+        priority_cards = ""
+
+        for checkin_id, checkin, risk in priority_clients:
+            priority_cards += f"""
+            <a
+                class="priority-client"
+                href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+
+                <strong>{checkin['client']}</strong>
+
+                <span>
+                    {risk} Risk
+                </span>
+
+            </a>
+            """
+
+        priority_html = f"""
+        <div class="priority-panel">
+
+            <div class="priority-header">
+                <div>
+                    <span class="priority-kicker">
+                        Coach Priority
+                    </span>
+
+                    <h2>🚨 Needs Attention</h2>
+                </div>
+
+                <strong class="priority-count">
+                    {len(priority_clients)}
+                </strong>
+            </div>
+
+            <div class="priority-list">
+                {priority_cards}
+            </div>
+
+        </div>
+        """
+
+    else:
+        priority_html = """
+        <div class="priority-panel priority-clear">
+            <strong>✅ No high-risk clients right now.</strong>
+        </div>
+        """
+
     cards = ""
 
     total_checkins = len(checkins)
@@ -1073,6 +1132,8 @@ def dashboard():
 
 </div>
     {stats_html}
+
+    {priority_html}
 
     {cards}
     """
