@@ -794,13 +794,13 @@ def dashboard():
     total_clients = len(clients)
 
     follow_up = sum(
-        1
-        for checkin in checkins
-        if (
-            datetime.now()
-            - datetime.fromisoformat(checkin["date"])
-        ).days >= 7
-    )
+    1
+    for _, checkin in dashboard_checkins
+    if (
+        datetime.now()
+        - datetime.fromisoformat(checkin["date"])
+    ).days >= 7
+)
 
     leaderboard = {}
 
