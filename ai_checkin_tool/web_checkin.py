@@ -740,6 +740,19 @@ def dashboard():
         priority_cards = ""
 
         for checkin_id, checkin, risk in priority_clients:
+            reasons = []
+
+            if int(checkin["sleep"]) <= 4:
+                reasons.append("Low sleep")
+
+            if int(checkin["energy"]) <= 4:
+                reasons.append("Low energy")
+
+            if int(checkin["stress"]) >= 8:
+                reasons.append("High stress")
+
+            reason_text = " • ".join(reasons)
+
             priority_cards += f"""
             <a
                 class="priority-client"
@@ -747,9 +760,15 @@ def dashboard():
 
                 <strong>{checkin['client']}</strong>
 
-                <span>
-                    {risk} Risk
-                </span>
+                <div>
+                    <span>
+                        {risk} Risk
+                    </span>
+
+                    <small>
+                        {reason_text}
+                    </small>
+                </div>
 
             </a>
             """
@@ -794,13 +813,13 @@ def dashboard():
     total_clients = len(clients)
 
     follow_up = sum(
-    1
-    for _, checkin in dashboard_checkins
-    if (
-        datetime.now()
-        - datetime.fromisoformat(checkin["date"])
-    ).days >= 7
-)
+        1
+        for _, checkin in dashboard_checkins
+        if (
+            datetime.now()
+            - datetime.fromisoformat(checkin["date"])
+        ).days >= 7
+    )
 
     leaderboard = {}
 
