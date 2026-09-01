@@ -426,6 +426,7 @@ def checkin():
         }
 
         checkins = load_checkins()
+        workouts = load_workouts()
         checkins.append(checkin_data)
         save_checkins(checkins)
 
@@ -918,11 +919,11 @@ def dashboard():
             attention_message = "✅ No urgent issues"
 
         client_workouts = [
-            workout
-            for workout in load_workouts()
-            if workout.get("client", "").strip().lower()
-            == checkin["client"].strip().lower()
-        ]
+    workout
+    for workout in workouts
+    if workout.get("client", "").strip().lower()
+    == checkin["client"].strip().lower()
+]
 
         current_prs = {
             workout.get("exercise", "").strip().lower()
