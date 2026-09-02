@@ -426,7 +426,6 @@ def checkin():
         }
 
         checkins = load_checkins()
-        workouts = load_workouts()
         checkins.append(checkin_data)
         save_checkins(checkins)
 
@@ -707,6 +706,7 @@ def dashboard():
         """
 
     checkins = load_checkins()
+    workouts = load_workouts()
     latest_checkins = {}
 
     for checkin_id, checkin in enumerate(checkins):
@@ -919,11 +919,11 @@ def dashboard():
             attention_message = "✅ No urgent issues"
 
         client_workouts = [
-    workout
-    for workout in workouts
-    if workout.get("client", "").strip().lower()
-    == checkin["client"].strip().lower()
-]
+            workout
+            for workout in workouts
+            if workout.get("client", "").strip().lower()
+            == checkin["client"].strip().lower()
+        ]
 
         current_prs = {
             workout.get("exercise", "").strip().lower()
@@ -1227,12 +1227,28 @@ def client_history(client_name):
     </div>
     """
 
-    history = ""
+    history_items = []
     previous = None
 
-    for checkin_id, checkin in reversed(client_checkins):
-        trend_html = build_trend_html(checkin, previous)
+    for checkin_id, checkin in client_checkins:
+        trend_html = build_trend_html(
+            checkin,
+            previous,
+        )
 
+        history_items.append(
+            (
+                checkin_id,
+                checkin,
+                trend_html,
+            )
+        )
+
+        previous = checkin
+
+    history = ""
+
+    for checkin_id, checkin, trend_html in reversed(history_items):
         history += f"""
         <div class="card">
             <p><strong>Date:</strong> {checkin['date'][:10]}</p>
@@ -1272,8 +1288,6 @@ def client_history(client_name):
             </form>
         </div>
         """
-
-        previous = checkin
 
     return f"""
     {profile_header}
