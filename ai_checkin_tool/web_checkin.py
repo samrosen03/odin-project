@@ -192,6 +192,21 @@ def calculate_risk_level(checkin):
     return "Low", "#16a34a"
 
 
+def get_risk_reasons(checkin):
+    reasons = []
+
+    if int(checkin["sleep"]) <= 4:
+        reasons.append("Low sleep")
+
+    if int(checkin["energy"]) <= 4:
+        reasons.append("Low energy")
+
+    if int(checkin["stress"]) >= 8:
+        reasons.append("High stress")
+
+    return reasons
+
+
 def get_risk_priority(checkin):
     risk, _ = calculate_risk_level(checkin)
 
@@ -741,17 +756,7 @@ def dashboard():
         priority_cards = ""
 
         for checkin_id, checkin, risk in priority_clients:
-            reasons = []
-
-            if int(checkin["sleep"]) <= 4:
-                reasons.append("Low sleep")
-
-            if int(checkin["energy"]) <= 4:
-                reasons.append("Low energy")
-
-            if int(checkin["stress"]) >= 8:
-                reasons.append("High stress")
-
+            reasons = get_risk_reasons(checkin)
             reason_text = " • ".join(reasons)
 
             priority_cards += f"""
