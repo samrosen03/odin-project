@@ -2,9 +2,11 @@ import json
 import os
 from datetime import datetime
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect
 
 app = Flask(__name__)
+app.secret_key = "checkmate-dev-secret"
+
 
 DATA_FILE = "data/checkins.json"
 WORKOUT_FILE = "data/workouts.json"
@@ -76,11 +78,11 @@ def check_for_new_pr(client_name, exercise, weight):
 
 
 def is_coach_logged_in():
-    return request.args.get("password") == COACH_PASSWORD
+    return session.get("coach_logged_in") is True
 
 
 def coach_dashboard_link():
-    return f"/dashboard?password={COACH_PASSWORD}"
+    return "/dashboard"
 
 
 def generate_coach_feedback(checkin):
@@ -703,6 +705,42 @@ def workout_logger():
     </a>
     """
 
+@app.route("/coach-login", methods=["GET", "POST"])
+def coach_login():
+    error = ""
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+
+        if password == COACH_PASSWORD:
+            session["coach_logged_in"] = True
+            return redirect("/dashboard")
+
+        error = "Incorrect password."
+
+    return f"""
+    <h1>Coach Login</h1>
+
+    <form method="POST">
+        <label>Password:</label>
+
+        <input
+            type="password"
+            name="password"
+            required>
+
+        <button type="submit">
+            Login
+        </button>
+    </form>
+
+    <p>{error}</p>
+    """
+@app.route("/logout")
+def logout():
+    session.pop("coach_logged_in", None)
+
+    return redirect("/coach-login")
 
 @app.route("/dashboard")
 def dashboard():
