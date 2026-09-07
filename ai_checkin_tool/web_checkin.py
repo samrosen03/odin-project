@@ -3,14 +3,27 @@ import os
 from datetime import datetime
 
 from flask import Flask, render_template, request, session, redirect
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "checkmate-dev-secret"
+app.secret_key = os.getenv("SECRET_KEY")
 
 
 DATA_FILE = "data/checkins.json"
 WORKOUT_FILE = "data/workouts.json"
-COACH_PASSWORD = "coach123"
+COACH_PASSWORD = os.getenv("COACH_PASSWORD")
+
+if not app.secret_key:
+    raise RuntimeError(
+        "SECRET_KEY is missing. Add it to your .env file."
+    )
+
+if not COACH_PASSWORD:
+    raise RuntimeError(
+        "COACH_PASSWORD is missing. Add it to your .env file."
+    )
 
 
 def load_checkins():
