@@ -594,18 +594,7 @@ def checkin():
 @app.route("/workout", methods=["GET", "POST"])
 def workout_logger():
     if not is_coach_logged_in():
-        return """
-        <h1>Coach Login</h1>
-
-        <form method="GET" action="/workout">
-            <input
-                name="password"
-                type="password"
-                placeholder="Coach password">
-
-            <button type="submit">Login</button>
-        </form>
-        """
+        return redirect("/coach-login")
 
     selected_client = request.args.get("client", "").strip()
 
@@ -652,13 +641,13 @@ def workout_logger():
         <br>
 
         <a
-            href="/workout?password={COACH_PASSWORD}&client={workout_data['client']}">
+            href="/workout?client={workout_data['client']}">
             Log another workout for {workout_data['client']}
         </a>
         <br>
 
         <a
-            href="/client/{workout_data['client']}?password={COACH_PASSWORD}">
+            href="/client/{workout_data['client']}">
             View client profile
         </a>
         <br>
@@ -673,7 +662,7 @@ def workout_logger():
 
     <form
         method="POST"
-        action="/workout?password={COACH_PASSWORD}&client={selected_client}">
+        action="/workout?client={selected_client}">
 
         <label>Client Name:</label><br>
 
@@ -749,27 +738,19 @@ def coach_login():
 
     <p>{error}</p>
     """
+
+
 @app.route("/logout")
 def logout():
     session.pop("coach_logged_in", None)
 
     return redirect("/coach-login")
 
+
 @app.route("/dashboard")
 def dashboard():
     if not is_coach_logged_in():
-        return """
-        <h1>Coach Login</h1>
-
-        <form method="GET" action="/dashboard">
-            <input
-                name="password"
-                type="password"
-                placeholder="Coach password">
-
-            <button type="submit">Login</button>
-        </form>
-        """
+        return redirect("/coach-login")
 
     checkins = load_checkins()
     workouts = load_workouts()
@@ -813,7 +794,7 @@ def dashboard():
             priority_cards += f"""
             <a
                 class="priority-client"
-                href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+                href="/client/{checkin['client']}">
 
                 <strong>{checkin['client']}</strong>
 
@@ -929,19 +910,19 @@ def dashboard():
         </p>
 
         <p>
-            <a href="/workout?password={COACH_PASSWORD}">
+            <a href="/workout">
                 Log Workout
             </a>
         </p>
 
         <p>
-            <a href="/search?password={COACH_PASSWORD}">
+            <a href="/search">
                 Search Clients
             </a>
         </p>
 
         <p>
-            <a href="/leaderboard?password={COACH_PASSWORD}">
+            <a href="/leaderboard">
                 Client Leaderboard
             </a>
         </p>
@@ -1041,7 +1022,7 @@ def dashboard():
         <div class="card">
             <h2>
                 <a
-                    href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+                    href="/client/{checkin['client']}">
                     {checkin['client']}
                 </a>
             </h2>
@@ -1133,13 +1114,13 @@ def dashboard():
             <div class="client-quick-actions">
                 <a
                     class="client-action action-profile"
-                    href="/client/{checkin['client']}?password={COACH_PASSWORD}">
+                    href="/client/{checkin['client']}">
                     👤 Coach Profile
                 </a>
 
                 <a
                     class="client-action action-log"
-                    href="/workout?password={COACH_PASSWORD}&client={checkin['client']}">
+                    href="/workout?client={checkin['client']}">
                     🏋️ Log Workout
                 </a>
 
@@ -1157,7 +1138,7 @@ def dashboard():
 
             <form
                 method="POST"
-                action="/note/{checkin_id}?password={COACH_PASSWORD}">
+                action="/note/{checkin_id}">
 
                 <input
                     name="note"
@@ -1176,6 +1157,12 @@ def dashboard():
     return f"""
     <h1>Coach Dashboard</h1>
 
+    <p>
+        <a href="/logout">
+            Log Out
+        </a>
+    </p>
+
     <div class="dashboard-actions">
 
     <a
@@ -1187,21 +1174,21 @@ def dashboard():
 
     <a
         class="dashboard-action action-workout"
-        href="/workout?password={COACH_PASSWORD}">
+        href="/workout">
         <span>🏋️</span>
         <strong>Log Workout</strong>
     </a>
 
     <a
         class="dashboard-action action-search"
-        href="/search?password={COACH_PASSWORD}">
+        href="/search">
         <span>🔎</span>
         <strong>Search Clients</strong>
     </a>
 
     <a
         class="dashboard-action action-leaderboard"
-        href="/leaderboard?password={COACH_PASSWORD}">
+        href="/leaderboard">
         <span>🏆</span>
         <strong>Leaderboard</strong>
     </a>
@@ -1218,20 +1205,7 @@ def dashboard():
 @app.route("/client/<client_name>")
 def client_history(client_name):
     if not is_coach_logged_in():
-        return """
-        <h1>Coach Login</h1>
-
-        <form method="GET">
-            <input
-                name="password"
-                type="password"
-                placeholder="Coach password">
-
-            <button type="submit">
-                Login
-            </button>
-        </form>
-        """
+        return redirect("/coach-login")
 
     checkins = load_checkins()
 
@@ -1332,7 +1306,7 @@ def client_history(client_name):
 
             <form
                 method="POST"
-                action="/note/{checkin_id}?password={COACH_PASSWORD}">
+                action="/note/{checkin_id}">
 
                 <input
                     name="note"
@@ -1354,7 +1328,7 @@ def client_history(client_name):
 
     <p>
         <a
-            href="/workout?password={COACH_PASSWORD}&client={latest['client']}">
+            href="/workout?client={latest['client']}">
             + Log Workout for {latest['client']}
         </a>
     </p>
@@ -1386,7 +1360,7 @@ def client_history(client_name):
 @app.route("/note/<int:checkin_id>", methods=["POST"])
 def add_note(checkin_id):
     if not is_coach_logged_in():
-        return "Unauthorized.", 401
+        return redirect("/coach-login")
 
     checkins = load_checkins()
 
@@ -1410,7 +1384,7 @@ def add_note(checkin_id):
 @app.route("/search")
 def search_clients():
     if not is_coach_logged_in():
-        return "Unauthorized.", 401
+        return redirect("/coach-login")
 
     query = request.args.get("q", "").strip().lower()
     checkins = load_checkins()
@@ -1427,7 +1401,7 @@ def search_clients():
     for client in unique_matches:
         results += f"""
         <li>
-            <a href="/client/{client}?password={COACH_PASSWORD}">
+            <a href="/client/{client}">
                 {client}
             </a>
         </li>
@@ -1437,11 +1411,6 @@ def search_clients():
     <h1>Client Search</h1>
 
     <form>
-        <input
-            type="hidden"
-            name="password"
-            value="{COACH_PASSWORD}">
-
         <input
             name="q"
             placeholder="Search client"
@@ -1457,7 +1426,7 @@ def search_clients():
     </ul>
 
     <p>
-        <a href="/leaderboard?password={COACH_PASSWORD}">
+        <a href="/leaderboard">
             Client Leaderboard
         </a>
     </p>
@@ -1471,7 +1440,7 @@ def search_clients():
 @app.route("/leaderboard")
 def leaderboard():
     if not is_coach_logged_in():
-        return "Unauthorized.", 401
+        return redirect("/coach-login")
 
     checkins = load_checkins()
     counts = {}
@@ -1496,7 +1465,7 @@ def leaderboard():
         <li>
             #{rank} -
 
-            <a href="/client/{client}?password={COACH_PASSWORD}">
+            <a href="/client/{client}">
                 {client}
             </a>
 
