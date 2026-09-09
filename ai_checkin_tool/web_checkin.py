@@ -1155,13 +1155,17 @@ def dashboard():
         """
 
     return f"""
-    <h1>Coach Dashboard</h1>
 
-    <p>
-        <a href="/logout">
-            Log Out
-        </a>
-    </p>
+    <div class="dashboard-header">
+    <div>
+        <h1>Coach Dashboard</h1>
+        <p>Manage your clients, workouts, and weekly progress.</p>
+    </div>
+
+    <a class="logout-button" href="/logout">
+        Log Out
+    </a>
+</div>
 
     <div class="dashboard-actions">
 
