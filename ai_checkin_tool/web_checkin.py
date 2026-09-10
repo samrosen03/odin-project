@@ -962,6 +962,14 @@ def dashboard():
             == checkin["client"].strip().lower()
         ]
 
+        if client_workouts:
+            last_workout_date = client_workouts[-1].get(
+                "date",
+                "Unknown",
+            )[:10]
+        else:
+            last_workout_date = "No workouts yet"
+
         current_prs = {
             workout.get("exercise", "").strip().lower()
             for workout in client_workouts
@@ -1068,6 +1076,11 @@ def dashboard():
                     <strong>{checkin['weight']}</strong>
                 </div>
 
+                <div class="summary-item">
+                    <span>Last Workout</span>
+                    <strong>{last_workout_date}</strong>
+                </div>
+
             </div>
 
             {latest_workout_html}
@@ -1155,17 +1168,16 @@ def dashboard():
         """
 
     return f"""
-
     <div class="dashboard-header">
-    <div>
-        <h1>Coach Dashboard</h1>
-        <p>Manage your clients, workouts, and weekly progress.</p>
-    </div>
+        <div>
+            <h1>Coach Dashboard</h1>
+            <p>Manage your clients, workouts, and weekly progress.</p>
+        </div>
 
-    <a class="logout-button" href="/logout">
-        Log Out
-    </a>
-</div>
+        <a class="logout-button" href="/logout">
+            Log Out
+        </a>
+    </div>
 
     <div class="dashboard-actions">
 
