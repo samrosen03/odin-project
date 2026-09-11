@@ -193,6 +193,39 @@ def calculate_compliance_score(checkin):
     return round(score / 40 * 100)
 
 
+def calculate_training_readiness(
+    sleep,
+    soreness,
+    energy,
+):
+    sleep = int(sleep)
+    soreness = int(soreness)
+    energy = int(energy)
+
+    if sleep <= 4 or soreness >= 8 or energy <= 4:
+        return (
+            "Low",
+            "Recovery Focus",
+            "Reduce training intensity today. "
+            "Prioritize recovery, mobility, and lighter work.",
+        )
+
+    if sleep >= 8 and soreness <= 3 and energy >= 8:
+        return (
+            "High",
+            "Ready to Push",
+            "Recovery markers look strong. "
+            "Normal training or a harder session is appropriate.",
+        )
+
+    return (
+        "Moderate",
+        "Train Normally",
+        "Readiness looks stable. "
+        "Complete the planned workout and adjust if needed.",
+    )
+
+
 def calculate_risk_level(checkin):
     energy = int(checkin["energy"])
     sleep = int(checkin["sleep"])
