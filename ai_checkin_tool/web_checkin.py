@@ -740,6 +740,113 @@ def workout_logger():
     </a>
     """
 
+
+@app.route("/readiness", methods=["GET", "POST"])
+def readiness_check():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    if request.method == "POST":
+        client = request.form.get("client", "").strip()
+        sleep = request.form.get("sleep", "")
+        soreness = request.form.get("soreness", "")
+        energy = request.form.get("energy", "")
+
+        readiness, status, recommendation = (
+            calculate_training_readiness(
+                sleep,
+                soreness,
+                energy,
+            )
+        )
+
+        return f"""
+        <h1>⌚ Training Readiness</h1>
+
+        <h2>{client}</h2>
+
+        <div class="card">
+            <p><strong>Readiness:</strong> {readiness}</p>
+            <p><strong>Today's Status:</strong> {status}</p>
+
+            <hr>
+
+            <p>
+                <strong>Coach Recommendation:</strong><br>
+                {recommendation}
+            </p>
+        </div>
+
+        <br>
+
+        <a href="/readiness">
+            Run Another Readiness Check
+        </a>
+
+        <br><br>
+
+        <a href="/dashboard">
+            ← Back to Dashboard
+        </a>
+        """
+
+    return """
+    <h1>⌚ Training Readiness</h1>
+
+    <p>
+        Enter today's recovery markers to help guide
+        the client's training.
+    </p>
+
+    <form method="POST">
+
+        <label>Client Name:</label><br>
+        <input
+            name="client"
+            required>
+        <br><br>
+
+        <label>Sleep 1-10:</label><br>
+        <input
+            name="sleep"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <label>Soreness 1-10:</label><br>
+        <input
+            name="soreness"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <label>Energy 1-10:</label><br>
+        <input
+            name="energy"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <button type="submit">
+            Calculate Readiness
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="/dashboard">
+        ← Back to Dashboard
+    </a>
+    """
+
+
 @app.route("/coach-login", methods=["GET", "POST"])
 def coach_login():
     error = ""
@@ -945,6 +1052,12 @@ def dashboard():
         <p>
             <a href="/workout">
                 Log Workout
+            </a>
+        </p>
+
+        <p>
+            <a href="/readiness">
+                Readiness Check
             </a>
         </p>
 
@@ -1226,6 +1339,13 @@ def dashboard():
         href="/workout">
         <span>🏋️</span>
         <strong>Log Workout</strong>
+    </a>
+
+    <a
+        class="dashboard-action action-readiness"
+        href="/readiness">
+        <span>⌚</span>
+        <strong>Readiness Check</strong>
     </a>
 
     <a
