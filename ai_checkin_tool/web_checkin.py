@@ -13,6 +13,7 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 DATA_FILE = "data/checkins.json"
 WORKOUT_FILE = "data/workouts.json"
+READINESS_FILE = "data/readiness.json"
 COACH_PASSWORD = os.getenv("COACH_PASSWORD")
 
 if not app.secret_key:
@@ -54,6 +55,21 @@ def save_workouts(workouts):
 
     with open(WORKOUT_FILE, "w") as file:
         json.dump(workouts, file, indent=2)
+
+
+def load_readiness():
+    if not os.path.exists(READINESS_FILE):
+        return []
+
+    with open(READINESS_FILE, "r") as file:
+        return json.load(file)
+
+
+def save_readiness(readiness_entries):
+    os.makedirs("data", exist_ok=True)
+
+    with open(READINESS_FILE, "w") as file:
+        json.dump(readiness_entries, file, indent=2)
 
 
 def check_for_new_pr(client_name, exercise, weight):
@@ -759,6 +775,21 @@ def readiness_check():
                 energy,
             )
         )
+
+        readiness_entry = {
+            "date": datetime.now().isoformat(),
+            "client": client,
+            "sleep": sleep,
+            "soreness": soreness,
+            "energy": energy,
+            "readiness": readiness,
+            "status": status,
+            "recommendation": recommendation,
+        }
+
+        readiness_entries = load_readiness()
+        readiness_entries.append(readiness_entry)
+        save_readiness(readiness_entries)
 
         return f"""
         <h1>⌚ Training Readiness</h1>
