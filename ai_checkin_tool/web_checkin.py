@@ -482,6 +482,43 @@ def build_workout_history(client_name):
     return workout_html
 
 
+def build_readiness_history(client_name):
+    readiness_entries = load_readiness()
+
+    client_entries = [
+        entry
+        for entry in readiness_entries
+        if entry.get("client", "").strip().lower()
+        == client_name.strip().lower()
+    ]
+
+    if not client_entries:
+        return """
+        <h2>⌚ Training Readiness</h2>
+        <p>No readiness checks yet.</p>
+        """
+
+    history_html = """
+    <h2>⌚ Training Readiness</h2>
+    """
+
+    for entry in reversed(client_entries[-5:]):
+        history_html += f"""
+        <div class="card">
+            <p><strong>Date:</strong> {entry['date'][:10]}</p>
+            <p><strong>Readiness:</strong> {entry['readiness']}</p>
+            <p><strong>Status:</strong> {entry['status']}</p>
+            <p>
+                Sleep: {entry['sleep']}/10
+                • Soreness: {entry['soreness']}/10
+                • Energy: {entry['energy']}/10
+            </p>
+        </div>
+        """
+
+    return history_html
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -1429,6 +1466,7 @@ def client_history(client_name):
     workout_history = build_workout_history(client_name)
     recent_prs = build_recent_prs(client_name)
     pr_table = build_pr_table(client_name)
+    readiness_history = build_readiness_history(client_name)
     latest = client_checkins[-1][1]
 
     profile_header = f"""
@@ -1544,6 +1582,10 @@ def client_history(client_name):
     <hr>
 
     {recent_prs}
+
+    <hr>
+
+    {readiness_history}
 
     <hr>
 
