@@ -519,6 +519,21 @@ def build_readiness_history(client_name):
     return history_html
 
 
+def get_latest_readiness(client_name):
+    readiness_entries = load_readiness()
+    client_entries = [
+        entry
+        for entry in readiness_entries
+        if entry.get("client", "").strip().lower()
+        == client_name.strip().lower()
+    ]
+
+    if not client_entries:
+        return None
+
+    return client_entries[-1]
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -1147,6 +1162,27 @@ def dashboard():
     for checkin_id, checkin in dashboard_checkins:
         risk, color = calculate_risk_level(checkin)
 
+        latest_readiness = get_latest_readiness(checkin["client"])
+
+        if latest_readiness:
+            readiness_html = f"""
+            <div class="dashboard-readiness">
+                <span>⌚ Latest Readiness</span>
+                <strong>
+                    {latest_readiness['readiness']} —
+                    {latest_readiness['status']}
+                </strong>
+                <small>{latest_readiness['date'][:10]}</small>
+            </div>
+            """
+        else:
+            readiness_html = """
+            <div class="dashboard-readiness readiness-empty">
+                <span>⌚ Latest Readiness</span>
+                <strong>No readiness check yet</strong>
+            </div>
+            """
+
         attention_items = []
 
         if int(checkin["sleep"]) <= 5:
@@ -1298,6 +1334,8 @@ def dashboard():
             </div>
 
             {latest_workout_html}
+
+            {readiness_html}
 
             <details class="client-details">
                 <summary>
