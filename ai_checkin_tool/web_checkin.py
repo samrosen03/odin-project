@@ -541,6 +541,8 @@ def home():
 
 @app.route("/checkin", methods=["GET", "POST"])
 def checkin():
+    selected_client = request.args.get("client", "").strip()
+
     if request.method == "POST":
         checkin_data = {
             "date": datetime.now().isoformat(),
@@ -625,12 +627,16 @@ def checkin():
         <a href="{coach_dashboard_link()}">View dashboard</a>
         """
 
-    return """
+    return f"""
     <h1>AI Fitness Check-In</h1>
 
     <form method="POST">
         <label>Client Name:</label><br>
-        <input name="client" required><br><br>
+        <input
+            name="client"
+            value="{selected_client}"
+            required>
+        <br><br>
 
         <label>Weight:</label><br>
         <input name="weight" required><br><br>
