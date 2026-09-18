@@ -209,6 +209,23 @@ def calculate_compliance_score(checkin):
     return round(score / 40 * 100)
 
 
+def validate_readiness_inputs(sleep, soreness, energy):
+    try:
+        sleep = int(sleep)
+        soreness = int(soreness)
+        energy = int(energy)
+    except (ValueError, TypeError):
+        return False
+
+    values = [sleep, soreness, energy]
+
+    for value in values:
+        if value < 1 or value > 10:
+            return False
+
+    return True
+
+
 def calculate_training_readiness(
     sleep,
     soreness,
@@ -825,6 +842,24 @@ def readiness_check():
         sleep = request.form.get("sleep", "")
         soreness = request.form.get("soreness", "")
         energy = request.form.get("energy", "")
+
+        if not validate_readiness_inputs(
+            sleep,
+            soreness,
+            energy,
+        ):
+            return """
+            <h1>Invalid Readiness Data</h1>
+
+            <p>
+                Sleep, soreness, and energy must
+                all be numbers from 1 to 10.
+            </p>
+
+            <a href="/readiness">
+                ← Try Again
+            </a>
+            """, 400
 
         readiness, status, recommendation = (
             calculate_training_readiness(
