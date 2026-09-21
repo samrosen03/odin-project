@@ -536,19 +536,16 @@ def build_readiness_history(client_name):
     return history_html
 
 
-def get_latest_readiness(client_name):
-    readiness_entries = load_readiness()
-    client_entries = [
-        entry
-        for entry in readiness_entries
-        if entry.get("client", "").strip().lower()
-        == client_name.strip().lower()
-    ]
+def build_latest_readiness_map(readiness_entries):
+    latest_readiness = {}
 
-    if not client_entries:
-        return None
+    for entry in readiness_entries:
+        client_name = entry.get("client", "").strip().lower()
 
-    return client_entries[-1]
+        if client_name:
+            latest_readiness[client_name] = entry
+
+    return latest_readiness
 
 
 @app.route("/")
@@ -1018,6 +1015,12 @@ def dashboard():
 
     checkins = load_checkins()
     workouts = load_workouts()
+    readiness_entries = load_readiness()
+
+    latest_readiness_map = build_latest_readiness_map(
+        readiness_entries
+    )
+
     latest_checkins = {}
 
     for checkin_id, checkin in enumerate(checkins):
@@ -1203,7 +1206,11 @@ def dashboard():
     for checkin_id, checkin in dashboard_checkins:
         risk, color = calculate_risk_level(checkin)
 
-        latest_readiness = get_latest_readiness(checkin["client"])
+        client_key = checkin["client"].strip().lower()
+
+        latest_readiness = latest_readiness_map.get(
+            client_key
+        )
 
         if latest_readiness:
             readiness_html = f"""
