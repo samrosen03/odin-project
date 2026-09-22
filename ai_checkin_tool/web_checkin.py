@@ -834,6 +834,8 @@ def readiness_check():
     if not is_coach_logged_in():
         return redirect("/coach-login")
 
+    selected_client = request.args.get("client", "").strip()
+
     if request.method == "POST":
         client = request.form.get("client", "").strip()
         sleep = request.form.get("sleep", "")
@@ -911,7 +913,7 @@ def readiness_check():
         </a>
         """
 
-    return """
+    return f"""
     <h1>⌚ Training Readiness</h1>
 
     <p>
@@ -924,6 +926,7 @@ def readiness_check():
         <label>Client Name:</label><br>
         <input
             name="client"
+            value="{selected_client}"
             required>
         <br><br>
 
@@ -1441,6 +1444,12 @@ def dashboard():
                     class="client-action action-checkin-small"
                     href="/checkin?client={checkin['client']}">
                     📝 Check-In
+                </a>
+
+                <a
+                    class="client-action action-readiness-small"
+                    href="/readiness?client={checkin['client']}">
+                    ⌚ Readiness
                 </a>
             </div>
 
