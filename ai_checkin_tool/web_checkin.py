@@ -1248,6 +1248,12 @@ def dashboard():
         if int(checkin["stress"]) >= 7:
             attention_items.append("high stress")
 
+        if (
+            latest_readiness
+            and latest_readiness.get("readiness") == "Low"
+        ):
+            attention_items.append("low readiness")
+
         if attention_items:
             attention_text = ", ".join(attention_items)
             attention_class = "attention-warning"
