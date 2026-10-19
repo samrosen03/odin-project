@@ -13,7 +13,6 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 DATA_FILE = "data/checkins.json"
 WORKOUT_FILE = "data/workouts.json"
-READINESS_FILE = "data/readiness.json"
 COACH_PASSWORD = os.getenv("COACH_PASSWORD")
 
 if not app.secret_key:
@@ -55,21 +54,6 @@ def save_workouts(workouts):
 
     with open(WORKOUT_FILE, "w") as file:
         json.dump(workouts, file, indent=2)
-
-
-def load_readiness():
-    if not os.path.exists(READINESS_FILE):
-        return []
-
-    with open(READINESS_FILE, "r") as file:
-        return json.load(file)
-
-
-def save_readiness(readiness_entries):
-    os.makedirs("data", exist_ok=True)
-
-    with open(READINESS_FILE, "w") as file:
-        json.dump(readiness_entries, file, indent=2)
 
 
 def check_for_new_pr(client_name, exercise, weight):
@@ -207,23 +191,6 @@ def calculate_compliance_score(checkin):
     )
 
     return round(score / 40 * 100)
-
-
-def validate_readiness_inputs(sleep, soreness, energy):
-    try:
-        sleep = int(sleep)
-        soreness = int(soreness)
-        energy = int(energy)
-    except (ValueError, TypeError):
-        return False
-
-    values = [sleep, soreness, energy]
-
-    for value in values:
-        if value < 1 or value > 10:
-            return False
-
-    return True
 
 
 def calculate_training_readiness(
@@ -499,55 +466,6 @@ def build_workout_history(client_name):
     return workout_html
 
 
-def build_readiness_history(client_name):
-    readiness_entries = load_readiness()
-
-    client_entries = [
-        entry
-        for entry in readiness_entries
-        if entry.get("client", "").strip().lower()
-        == client_name.strip().lower()
-    ]
-
-    if not client_entries:
-        return """
-        <h2>⌚ Training Readiness</h2>
-        <p>No readiness checks yet.</p>
-        """
-
-    history_html = """
-    <h2>⌚ Training Readiness</h2>
-    """
-
-    for entry in reversed(client_entries[-5:]):
-        history_html += f"""
-        <div class="card">
-            <p><strong>Date:</strong> {entry['date'][:10]}</p>
-            <p><strong>Readiness:</strong> {entry['readiness']}</p>
-            <p><strong>Status:</strong> {entry['status']}</p>
-            <p>
-                Sleep: {entry['sleep']}/10
-                • Soreness: {entry['soreness']}/10
-                • Energy: {entry['energy']}/10
-            </p>
-        </div>
-        """
-
-    return history_html
-
-
-def build_latest_readiness_map(readiness_entries):
-    latest_readiness = {}
-
-    for entry in readiness_entries:
-        client_name = entry.get("client", "").strip().lower()
-
-        if client_name:
-            latest_readiness[client_name] = entry
-
-    return latest_readiness
-
-
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -555,8 +473,6 @@ def home():
 
 @app.route("/checkin", methods=["GET", "POST"])
 def checkin():
-    selected_client = request.args.get("client", "").strip()
-
     if request.method == "POST":
         checkin_data = {
             "date": datetime.now().isoformat(),
@@ -641,16 +557,12 @@ def checkin():
         <a href="{coach_dashboard_link()}">View dashboard</a>
         """
 
-    return f"""
+    return """
     <h1>AI Fitness Check-In</h1>
 
     <form method="POST">
         <label>Client Name:</label><br>
-        <input
-            name="client"
-            value="{selected_client}"
-            required>
-        <br><br>
+        <input name="client" required><br><br>
 
         <label>Weight:</label><br>
         <input name="weight" required><br><br>
@@ -828,146 +740,6 @@ def workout_logger():
     </a>
     """
 
-
-@app.route("/readiness", methods=["GET", "POST"])
-def readiness_check():
-    if not is_coach_logged_in():
-        return redirect("/coach-login")
-
-    if request.method == "POST":
-        client = request.form.get("client", "").strip()
-        sleep = request.form.get("sleep", "")
-        soreness = request.form.get("soreness", "")
-        energy = request.form.get("energy", "")
-
-        if not validate_readiness_inputs(
-            sleep,
-            soreness,
-            energy,
-        ):
-            return """
-            <h1>Invalid Readiness Data</h1>
-
-            <p>
-                Sleep, soreness, and energy must
-                all be numbers from 1 to 10.
-            </p>
-
-            <a href="/readiness">
-                ← Try Again
-            </a>
-            """, 400
-
-        readiness, status, recommendation = (
-            calculate_training_readiness(
-                sleep,
-                soreness,
-                energy,
-            )
-        )
-
-        readiness_entry = {
-            "date": datetime.now().isoformat(),
-            "client": client,
-            "sleep": sleep,
-            "soreness": soreness,
-            "energy": energy,
-            "readiness": readiness,
-            "status": status,
-            "recommendation": recommendation,
-        }
-
-        readiness_entries = load_readiness()
-        readiness_entries.append(readiness_entry)
-        save_readiness(readiness_entries)
-
-        return f"""
-        <h1>⌚ Training Readiness</h1>
-
-        <h2>{client}</h2>
-
-        <div class="card">
-            <p><strong>Readiness:</strong> {readiness}</p>
-            <p><strong>Today's Status:</strong> {status}</p>
-
-            <hr>
-
-            <p>
-                <strong>Coach Recommendation:</strong><br>
-                {recommendation}
-            </p>
-        </div>
-
-        <br>
-
-        <a href="/readiness">
-            Run Another Readiness Check
-        </a>
-
-        <br><br>
-
-        <a href="/dashboard">
-            ← Back to Dashboard
-        </a>
-        """
-
-    return """
-    <h1>⌚ Training Readiness</h1>
-
-    <p>
-        Enter today's recovery markers to help guide
-        the client's training.
-    </p>
-
-    <form method="POST">
-
-        <label>Client Name:</label><br>
-        <input
-            name="client"
-            required>
-        <br><br>
-
-        <label>Sleep 1-10:</label><br>
-        <input
-            name="sleep"
-            type="number"
-            min="1"
-            max="10"
-            required>
-        <br><br>
-
-        <label>Soreness 1-10:</label><br>
-        <input
-            name="soreness"
-            type="number"
-            min="1"
-            max="10"
-            required>
-        <br><br>
-
-        <label>Energy 1-10:</label><br>
-        <input
-            name="energy"
-            type="number"
-            min="1"
-            max="10"
-            required>
-        <br><br>
-
-        <button type="submit">
-            Calculate Readiness
-        </button>
-
-    </form>
-
-    <br>
-
-    <a href="/dashboard">
-        ← Back to Dashboard
-    </a>
-    """
-
-
 @app.route("/coach-login", methods=["GET", "POST"])
 def coach_login():
     error = ""
@@ -1015,12 +787,6 @@ def dashboard():
 
     checkins = load_checkins()
     workouts = load_workouts()
-    readiness_entries = load_readiness()
-
-    latest_readiness_map = build_latest_readiness_map(
-        readiness_entries
-    )
-
     latest_checkins = {}
 
     for checkin_id, checkin in enumerate(checkins):
@@ -1183,12 +949,6 @@ def dashboard():
         </p>
 
         <p>
-            <a href="/readiness">
-                Readiness Check
-            </a>
-        </p>
-
-        <p>
             <a href="/search">
                 Search Clients
             </a>
@@ -1205,31 +965,6 @@ def dashboard():
 
     for checkin_id, checkin in dashboard_checkins:
         risk, color = calculate_risk_level(checkin)
-
-        client_key = checkin["client"].strip().lower()
-
-        latest_readiness = latest_readiness_map.get(
-            client_key
-        )
-
-        if latest_readiness:
-            readiness_html = f"""
-            <div class="dashboard-readiness">
-                <span>⌚ Latest Readiness</span>
-                <strong>
-                    {latest_readiness['readiness']} —
-                    {latest_readiness['status']}
-                </strong>
-                <small>{latest_readiness['date'][:10]}</small>
-            </div>
-            """
-        else:
-            readiness_html = """
-            <div class="dashboard-readiness readiness-empty">
-                <span>⌚ Latest Readiness</span>
-                <strong>No readiness check yet</strong>
-            </div>
-            """
 
         attention_items = []
 
@@ -1383,8 +1118,6 @@ def dashboard():
 
             {latest_workout_html}
 
-            {readiness_html}
-
             <details class="client-details">
                 <summary>
                     View Coaching Details
@@ -1496,13 +1229,6 @@ def dashboard():
     </a>
 
     <a
-        class="dashboard-action action-readiness"
-        href="/readiness">
-        <span>⌚</span>
-        <strong>Readiness Check</strong>
-    </a>
-
-    <a
         class="dashboard-action action-search"
         href="/search">
         <span>🔎</span>
@@ -1552,7 +1278,6 @@ def client_history(client_name):
     workout_history = build_workout_history(client_name)
     recent_prs = build_recent_prs(client_name)
     pr_table = build_pr_table(client_name)
-    readiness_history = build_readiness_history(client_name)
     latest = client_checkins[-1][1]
 
     profile_header = f"""
@@ -1668,10 +1393,6 @@ def client_history(client_name):
     <hr>
 
     {recent_prs}
-
-    <hr>
-
-    {readiness_history}
 
     <hr>
 
