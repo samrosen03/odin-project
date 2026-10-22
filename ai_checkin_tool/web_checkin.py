@@ -1533,7 +1533,9 @@ def leaderboard():
         Back to Dashboard
     </a>
     """
-
+@app.route("/health")
+def health_check():
+    return {"status": "ok"}, 200
 
 if __name__ == "__main__":
     app.run(debug=True)
