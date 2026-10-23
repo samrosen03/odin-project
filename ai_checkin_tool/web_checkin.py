@@ -1533,6 +1533,10 @@ def leaderboard():
         Back to Dashboard
     </a>
     """
+@app.route("/practice")
+def practice():
+    return render_template("practice.html")
+
 @app.route("/health")
 def health_check():
     return {"status": "ok"}, 200
