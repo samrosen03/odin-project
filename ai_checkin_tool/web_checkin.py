@@ -1535,7 +1535,14 @@ def leaderboard():
     """
 @app.route("/practice")
 def practice():
-    return render_template("practice.html")
+    coach_name = "Coach"
+    total_clients = 5
+
+    return render_template(
+        "practice.html",
+        coach=coach_name,
+        clients=total_clients
+    )
 
 @app.route("/health")
 def health_check():
