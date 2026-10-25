@@ -1535,12 +1535,19 @@ def leaderboard():
     """
 @app.route("/practice")
 def practice():
-    coach_name = "Coach"
-    total_clients = 5
+    checkins = load_checkins()
+
+    unique_clients = set()
+
+    for checkin in checkins:
+        client_name = checkin["client"].strip().lower()
+        unique_clients.add(client_name)
+
+    total_clients = len(unique_clients)
 
     return render_template(
         "practice.html",
-        coach=coach_name,
+        coach="Coach",
         clients=total_clients
     )
 
