@@ -1540,15 +1540,18 @@ def practice():
     unique_clients = set()
 
     for checkin in checkins:
-        client_name = checkin["client"].strip().lower()
-        unique_clients.add(client_name)
+        client_name = checkin["client"].strip()
+        if client_name:
+            unique_clients.add(client_name.lower())
 
-    total_clients = len(unique_clients)
+    client_names = sorted(unique_clients)
+    total_clients = len(client_names)
 
     return render_template(
         "practice.html",
         coach="Coach",
-        clients=total_clients
+        clients=total_clients,
+        client_names=client_names
     )
 
 @app.route("/health")

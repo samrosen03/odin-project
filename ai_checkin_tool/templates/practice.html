@@ -10,3 +10,12 @@
 <p>You currently have {{ clients }} clients.</p>
 </body>
 </html>
+<h2>Client List</h2>
+
+<ul>
+    {% for client in client_names %}
+        <li>{{ client.title() }}</li>
+    {% else %}
+        <li>No clients found yet.</li>
+    {% endfor %}
+</ul>
