@@ -12,10 +12,12 @@
 </html>
 <h2>Client List</h2>
 
-<ul>
-    {% for client in client_names %}
-        <li>{{ client.title() }}</li>
-    {% else %}
-        <li>No clients found yet.</li>
-    {% endfor %}
-</ul>
+{% for client in client_names %}
+    <li>
+        <a href="{{ url_for('client_profile', client_name=client) }}">
+            {{ client.title() }}
+        </a>
+    </li>
+{% else %}
+    <li>No clients found yet.</li>
+{% endfor %}
