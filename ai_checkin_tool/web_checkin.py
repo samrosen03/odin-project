@@ -1535,6 +1535,9 @@ def leaderboard():
     """
 @app.route("/practice")
 def practice():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
     checkins = load_checkins()
 
     unique_clients = set()
