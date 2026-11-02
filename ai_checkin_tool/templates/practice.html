@@ -8,19 +8,48 @@
     <h1>Welcome, {{ coach }}!</h1>
 
 <p>You currently have {{ clients }} clients.</p>
+<script>
+function filterClients() {
+    const search = document
+        .getElementById("clientSearch")
+        .value
+        .toLowerCase();
+
+    const clients = document
+        .querySelectorAll("#clientList li");
+
+    clients.forEach(function(client) {
+        const name = client.textContent.toLowerCase();
+
+        if (name.includes(search)) {
+            client.style.display = "";
+        } else {
+            client.style.display = "none";
+        }
+    });
+}
+</script>
 </body>
 </html>
 <h2>Client List</h2>
+<input
+    type="text"
+    id="clientSearch"
+    placeholder="Search clients..."
+    onkeyup="filterClients()"
+>
 
-{% for client in client_names %}
-    <li>
-        <a href="{{ url_for('client_profile', client_name=client) }}">
-            {{ client.title() }}
-        </a>
-    </li>
-{% else %}
-    <li>No clients found yet.</li>
-{% endfor %}
+<ul id="clientList">
+    {% for client in client_names %}
+        <li>
+            <a href="{{ url_for('client_profile', client_name=client) }}">
+                {{ client.title() }}
+            </a>
+        </li>
+    {% else %}
+        <li>No clients found yet.</li>
+    {% endfor %}
+</ul>
 
 <p>
     <a href="{{ url_for('dashboard') }}">
