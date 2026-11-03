@@ -1,58 +1,77 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkmate AI Practice</title>
 </head>
 <body>
+
     <h1>Welcome, {{ coach }}!</h1>
 
-<p>You currently have {{ clients }} clients.</p>
-<script>
-function filterClients() {
-    const search = document
-        .getElementById("clientSearch")
-        .value
-        .toLowerCase();
+    <p>You currently have {{ clients }} clients.</p>
 
-    const clients = document
-        .querySelectorAll("#clientList li");
+    <h2>Client List</h2>
 
-    clients.forEach(function(client) {
-        const name = client.textContent.toLowerCase();
+    <input
+        type="text"
+        id="clientSearch"
+        placeholder="Search clients..."
+        onkeyup="filterClients()"
+    >
 
-        if (name.includes(search)) {
-            client.style.display = "";
-        } else {
-            client.style.display = "none";
+    <p id="clientCount">
+        Showing {{ clients }} of {{ clients }} clients
+    </p>
+
+    <ul id="clientList">
+        {% for client in client_names %}
+            <li>
+                <a href="{{ url_for('client_history', client_name=client) }}">
+                    {{ client.title() }}
+                </a>
+            </li>
+        {% else %}
+            <li>No clients found yet.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <a href="{{ url_for('dashboard') }}">
+            ← Back to Dashboard
+        </a>
+    </p>
+
+    <script>
+        function filterClients() {
+            const search = document
+                .getElementById("clientSearch")
+                .value
+                .trim()
+                .toLowerCase();
+
+            const clients = document
+                .querySelectorAll("#clientList li a");
+
+            let visibleCount = 0;
+
+            clients.forEach(function(client) {
+                const name = client.textContent.toLowerCase();
+                const listItem = client.closest("li");
+
+                if (name.includes(search)) {
+                    listItem.style.display = "";
+                    visibleCount++;
+                } else {
+                    listItem.style.display = "none";
+                }
+            });
+
+            document.getElementById("clientCount").textContent =
+                "Showing " + visibleCount + " of " + clients.length + " clients";
         }
-    });
-}
-</script>
+    </script>
+
 </body>
 </html>
-<h2>Client List</h2>
-<input
-    type="text"
-    id="clientSearch"
-    placeholder="Search clients..."
-    onkeyup="filterClients()"
->
-
-<ul id="clientList">
-    {% for client in client_names %}
-        <li>
-            <a href="{{ url_for('client_profile', client_name=client) }}">
-                {{ client.title() }}
-            </a>
-        </li>
-    {% else %}
-        <li>No clients found yet.</li>
-    {% endfor %}
-</ul>
-
-<p>
-    <a href="{{ url_for('dashboard') }}">
-        ← Back to Dashboard
-    </a>
-</p>
