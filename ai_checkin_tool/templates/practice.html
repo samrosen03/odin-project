@@ -20,6 +20,9 @@
         placeholder="Search clients..."
         onkeyup="filterClients()"
     >
+<button type="button" onclick="clearSearch()">
+    Clear Search
+</button>
 
     <p id="clientCount">
         Showing {{ clients }} of {{ clients }} clients
@@ -71,6 +74,10 @@
             document.getElementById("clientCount").textContent =
                 "Showing " + visibleCount + " of " + clients.length + " clients";
         }
+    function clearSearch() {
+    document.getElementById("clientSearch").value = "";
+    filterClients();
+}
     </script>
 
 </body>
