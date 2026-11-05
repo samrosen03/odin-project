@@ -18,11 +18,12 @@
         type="text"
         id="clientSearch"
         placeholder="Search clients..."
-        onkeyup="filterClients()"
+        oninput="filterClients()"
     >
-<button type="button" onclick="clearSearch()">
-    Clear Search
-</button>
+
+    <button type="button" onclick="clearSearch()">
+        Clear Search
+    </button>
 
     <p id="clientCount">
         Showing {{ clients }} of {{ clients }} clients
@@ -39,6 +40,10 @@
             <li>No clients found yet.</li>
         {% endfor %}
     </ul>
+
+    <p id="noResults" style="display: none;">
+        No matching clients found.
+    </p>
 
     <p>
         <a href="{{ url_for('dashboard') }}">
@@ -60,7 +65,10 @@
             let visibleCount = 0;
 
             clients.forEach(function(client) {
-                const name = client.textContent.toLowerCase();
+                const name = client.textContent
+                    .trim()
+                    .toLowerCase();
+
                 const listItem = client.closest("li");
 
                 if (name.includes(search)) {
@@ -71,14 +79,25 @@
                 }
             });
 
+            const noResults = document.getElementById("noResults");
+
+            if (visibleCount === 0 && clients.length > 0) {
+                noResults.style.display = "block";
+            } else {
+                noResults.style.display = "none";
+            }
+
             document.getElementById("clientCount").textContent =
-                "Showing " + visibleCount + " of " + clients.length + " clients";
+                "Showing " + visibleCount + " of " +
+                clients.length + " clients";
         }
-    function clearSearch() {
-    document.getElementById("clientSearch").value = "";
-    filterClients();
-}
+
+        function clearSearch() {
+            document.getElementById("clientSearch").value = "";
+            filterClients();
+        }
     </script>
 
 </body>
 </html>
+
