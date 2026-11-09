@@ -1215,6 +1215,13 @@ def dashboard():
     <div class="dashboard-actions">
 
     <a
+    class="dashboard-action action-search"
+    href="/practice">
+    <span>👥</span>
+    <strong>Client Directory</strong>
+</a>
+
+    <a
         class="dashboard-action action-checkin"
         href="/checkin">
         <span>📝</span>
