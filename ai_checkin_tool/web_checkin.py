@@ -932,6 +932,13 @@ def dashboard():
 
     if not checkins:
         return f"""
+
+        <p>
+    <a href="/practice">
+        👥 Client Directory
+    </a>
+</p>
+
         <h1>Coach Dashboard</h1>
 
         <p>No check-ins yet.</p>
