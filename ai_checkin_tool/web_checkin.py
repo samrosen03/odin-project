@@ -624,6 +624,7 @@ def checkin():
     """
 
 
+
 @app.route("/workout", methods=["GET", "POST"])
 def workout_logger():
     if not is_coach_logged_in():
@@ -638,12 +639,37 @@ def workout_logger():
         reps = request.form.get("reps", "").strip()
         notes = request.form.get("notes", "").strip()
 
+        # Validate required fields
+        if not client_name or not exercise:
+            return "Client name and exercise are required.", 400
+
+        # Validate weight and reps
+        try:
+            weight_number = float(weight)
+            reps_number = int(reps)
+        except (ValueError, TypeError, OverflowError):
+            return "Weight and reps must be valid numbers.", 400
+
+        # Prevent negative, zero, or non-finite values
+        if (
+            not (-float("inf") < weight_number < float("inf"))
+            or weight_number < 0
+            or reps_number <= 0
+        ):
+            return (
+                "Weight must be a valid non-negative number "
+                "and reps must be positive.",
+                400,
+            )
+
+        # Check for a new personal record
         is_pr = check_for_new_pr(
             client_name,
             exercise,
             weight,
         )
 
+        # Create workout record
         workout_data = {
             "date": datetime.now().isoformat(),
             "client": client_name,
@@ -654,6 +680,7 @@ def workout_logger():
             "notes": notes,
         }
 
+        # Save workout to JSON
         workouts = load_workouts()
         workouts.append(workout_data)
         save_workouts(workouts)
@@ -665,24 +692,26 @@ def workout_logger():
         <p><strong>Exercise:</strong> {workout_data['exercise']}</p>
         <p><strong>Weight:</strong> {workout_data['weight']}</p>
         <p><strong>Reps:</strong> {workout_data['reps']}</p>
+
         <p>
             <strong>PR:</strong>
             {"Yes" if workout_data['is_pr'] else "No"}
         </p>
+
         <p><strong>Notes:</strong> {workout_data['notes']}</p>
 
         <br>
 
-        <a
-            href="/workout?client={workout_data['client']}">
+        <a href="/workout?client={workout_data['client']}">
             Log another workout for {workout_data['client']}
         </a>
+
         <br>
 
-        <a
-            href="/client/{workout_data['client']}">
+        <a href="/client/{workout_data['client']}">
             View client profile
         </a>
+
         <br>
 
         <a href="{coach_dashboard_link()}">
@@ -690,6 +719,7 @@ def workout_logger():
         </a>
         """
 
+    # Display workout form for GET requests
     return f"""
     <h1>Log Workout</h1>
 
@@ -739,6 +769,7 @@ def workout_logger():
         Back to Dashboard
     </a>
     """
+
 
 @app.route("/coach-login", methods=["GET", "POST"])
 def coach_login():
