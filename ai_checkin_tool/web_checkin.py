@@ -751,11 +751,11 @@ def workout_logger():
         </select>
         <br><br>
 
-        <label>Weight:</label><br>
-        <input name="weight" required><br><br>
+        <label>Weight (lbs):</label><br>
+<input type="number" name="weight" min="0" step="0.5" required><br><br>
 
-        <label>Reps:</label><br>
-        <input name="reps" required><br><br>
+<label>Reps:</label><br>
+<input type="number" name="reps" min="1" step="1" required><br><br>
 
         <label>Notes:</label><br>
         <textarea name="notes"></textarea><br><br>
