@@ -723,9 +723,10 @@ def workout_logger():
     return f"""
     <h1>Log Workout</h1>
 
-    <form
-        method="POST"
-        action="/workout?client={selected_client}">
+   <form
+    method="POST"
+    action="/workout?client={selected_client}"
+    onsubmit="disableWorkoutButton()">
 
         <label>Client Name:</label><br>
 
@@ -759,10 +760,18 @@ def workout_logger():
 
         <label>Notes:</label><br>
         <textarea name="notes"></textarea><br><br>
-
-        <button type="submit">Save Workout</button>
+        <button type="submit" id="saveWorkoutButton">
+            Save Workout
+        </button>
     </form>
 
+    <script>
+    function disableWorkoutButton() {{
+        const button = document.getElementById("saveWorkoutButton");
+        button.disabled = true;
+        button.textContent = "Saving...";
+    }}
+</script>
     <br>
 
     <a href="{coach_dashboard_link()}">
