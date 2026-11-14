@@ -761,8 +761,10 @@ def workout_logger():
         <label>Notes:</label><br>
         <textarea name="notes"></textarea><br><br>
         <button type="submit" id="saveWorkoutButton">
-            Save Workout
-        </button>
+    Save Workout
+</button>
+
+<a href="/dashboard">Cancel</a>
     </form>
 
     <script>
