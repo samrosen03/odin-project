@@ -767,6 +767,10 @@ def workout_logger():
 <a href="/dashboard">Cancel</a>
     </form>
 
+<button type="reset">
+    Clear Form
+</button>
+
     <script>
     function disableWorkoutButton() {{
         const button = document.getElementById("saveWorkoutButton");
