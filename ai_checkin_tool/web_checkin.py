@@ -1324,6 +1324,17 @@ def client_history(client_name):
         if checkin["client"].lower() == client_name.lower()
     ]
 
+    client_workouts = [
+        workout
+        for checkin in client_checkins
+        for workout in checkin[1].get("workouts", [])
+    ]
+
+    client_workouts.sort(
+        key=lambda workout: workout.get("date", ""),
+        reverse=True
+    )
+
     if not client_checkins:
         return f"""
         <h1>No check-ins found for {client_name}</h1>
