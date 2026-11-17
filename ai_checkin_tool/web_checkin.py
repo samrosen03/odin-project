@@ -1317,6 +1317,18 @@ def client_history(client_name):
         return redirect("/coach-login")
 
     checkins = load_checkins()
+    workouts = load_workouts()
+
+    client_workouts = [
+        workout for workout in workouts
+        if workout.get("client", "").strip().lower() == client_name.strip().lower()
+    ]
+
+    if not client_workouts:
+        workout_history_html = """
+        <p>No workouts recorded yet.</p>
+        <p>Log this client's first workout to begin tracking progress.</p>
+        """
 
     client_checkins = [
         (checkin_id, checkin)
