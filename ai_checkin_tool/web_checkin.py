@@ -93,3 +93,1541 @@ def check_for_new_pr(client_name, exercise, weight):
 def is_coach_logged_in():
     return session.get("coach_logged_in") is True
 
+
+def coach_dashboard_link():
+    return "/dashboard"
+
+
+def generate_coach_feedback(checkin):
+    feedback = []
+
+    energy = int(checkin["energy"])
+    sleep = int(checkin["sleep"])
+    nutrition = int(checkin["nutrition"])
+    stress = int(checkin["stress"])
+
+    if nutrition >= 7:
+        feedback.append(
+            "Great job staying consistent with your nutrition this week."
+        )
+
+    if energy >= 7:
+        feedback.append(
+            "Your energy looks solid, which is a good sign your routine is supporting you."
+        )
+
+    if sleep <= 5:
+        feedback.append(
+            "Sleep looks like the biggest opportunity this week. "
+            "Aim to improve your bedtime routine and recovery."
+        )
+
+    if stress >= 7:
+        feedback.append(
+            "Stress is elevated, so focus on recovery, hydration, walks, "
+            "and keeping training manageable."
+        )
+
+    if energy <= 5:
+        feedback.append(
+            "Energy is low, so avoid trying to crush every workout. "
+            "Focus on consistency and recovery."
+        )
+
+    if not feedback:
+        feedback.append(
+            "Overall, this looks like a steady week. Keep building consistency "
+            "and focus on one small improvement."
+        )
+
+    return feedback
+
+
+def generate_action_items(checkin):
+    actions = []
+
+    if int(checkin["sleep"]) <= 5:
+        actions.append("😴 Prioritize getting at least 7-8 hours of sleep.")
+
+    if int(checkin["nutrition"]) <= 6:
+        actions.append(
+            "🥗 Focus on hitting your nutrition goals 5+ days this week."
+        )
+
+    if int(checkin["stress"]) >= 7:
+        actions.append("🧘 Schedule at least one recovery activity this week.")
+
+    if int(checkin["energy"]) <= 5:
+        actions.append("🏃 Reduce training intensity and focus on recovery.")
+
+    if not actions:
+        actions.append("✅ Stay consistent with your current routine.")
+
+    return actions
+
+
+def recommend_workout(checkin):
+    energy = int(checkin["energy"])
+    stress = int(checkin["stress"])
+    sleep = int(checkin["sleep"])
+
+    if energy <= 4 or sleep <= 4 or stress >= 8:
+        return (
+            "🟢 Recovery Week: Walk, mobility work, and light strength training."
+        )
+
+    if energy >= 8 and stress <= 4:
+        return "🔥 Push Week: Train hard and increase weights if possible."
+
+    return "💪 Normal Week: Stay consistent and complete your planned workouts."
+
+
+def calculate_compliance_score(checkin):
+    score = (
+        int(checkin["energy"])
+        + int(checkin["sleep"])
+        + int(checkin["nutrition"])
+        + (11 - int(checkin["stress"]))
+    )
+
+    return round(score / 40 * 100)
+
+
+def calculate_training_readiness(
+    sleep,
+    soreness,
+    energy,
+):
+    sleep = int(sleep)
+    soreness = int(soreness)
+    energy = int(energy)
+
+    if sleep <= 4 or soreness >= 8 or energy <= 4:
+        return (
+            "Low",
+            "Recovery Focus",
+            "Reduce training intensity today. "
+            "Prioritize recovery, mobility, and lighter work.",
+        )
+
+    if sleep >= 8 and soreness <= 3 and energy >= 8:
+        return (
+            "High",
+            "Ready to Push",
+            "Recovery markers look strong. "
+            "Normal training or a harder session is appropriate.",
+        )
+
+    return (
+        "Moderate",
+        "Train Normally",
+        "Readiness looks stable. "
+        "Complete the planned workout and adjust if needed.",
+    )
+
+
+def calculate_risk_level(checkin):
+    energy = int(checkin["energy"])
+    sleep = int(checkin["sleep"])
+    stress = int(checkin["stress"])
+
+    if sleep <= 4 or energy <= 4 or stress >= 8:
+        return "High", "#dc2626"
+
+    if sleep <= 6 or stress >= 6:
+        return "Moderate", "#f59e0b"
+
+    return "Low", "#16a34a"
+
+
+def get_risk_reasons(checkin):
+    reasons = []
+
+    if int(checkin["sleep"]) <= 4:
+        reasons.append("Low sleep")
+
+    if int(checkin["energy"]) <= 4:
+        reasons.append("Low energy")
+
+    if int(checkin["stress"]) >= 8:
+        reasons.append("High stress")
+
+    return reasons
+
+
+def get_risk_priority(checkin):
+    risk, _ = calculate_risk_level(checkin)
+
+    priorities = {
+        "High": 3,
+        "Moderate": 2,
+        "Low": 1,
+    }
+
+    return priorities.get(risk, 0)
+
+
+def build_trend_html(current, previous):
+    if not previous:
+        return ""
+
+    metrics = ["energy", "sleep", "nutrition", "stress"]
+    trend_html = "<h4>📈 Progress Since Last Check-In</h4><ul>"
+
+    for metric in metrics:
+        difference = int(current[metric]) - int(previous[metric])
+
+        if difference > 0:
+            trend_html += f"<li>{metric.title()}: +{difference}</li>"
+        elif difference < 0:
+            trend_html += f"<li>{metric.title()}: {difference}</li>"
+        else:
+            trend_html += f"<li>{metric.title()}: No Change</li>"
+
+    trend_html += "</ul>"
+    return trend_html
+
+
+def calculate_weight_change(client_checkins):
+    if len(client_checkins) < 2:
+        return "Weight Change: Need at least 2 check-ins"
+
+    try:
+        first_weight = float(client_checkins[0][1]["weight"])
+        latest_weight = float(client_checkins[-1][1]["weight"])
+    except (ValueError, TypeError):
+        return "Weight Change: Invalid weight data"
+
+    change = latest_weight - first_weight
+
+    if change > 0:
+        return f"⬆️ Weight Change: +{change:.1f} lbs"
+
+    if change < 0:
+        return f"⬇️ Weight Change: {change:.1f} lbs"
+
+    return "➡️ Weight Change: No Change"
+
+
+def build_client_summary(client_checkins):
+    total = len(client_checkins)
+
+    avg_energy = round(
+        sum(int(item[1]["energy"]) for item in client_checkins) / total,
+        1,
+    )
+    avg_sleep = round(
+        sum(int(item[1]["sleep"]) for item in client_checkins) / total,
+        1,
+    )
+    avg_nutrition = round(
+        sum(int(item[1]["nutrition"]) for item in client_checkins) / total,
+        1,
+    )
+    avg_stress = round(
+        sum(int(item[1]["stress"]) for item in client_checkins) / total,
+        1,
+    )
+
+    latest = client_checkins[-1][1]
+
+    return f"""
+    <h2>📊 Client Summary</h2>
+
+    <p><strong>Total Check-Ins:</strong> {total}</p>
+    <p><strong>Current Goal:</strong> {latest.get('goal', 'Not set')}</p>
+    <p><strong>Average Energy:</strong> {avg_energy}/10</p>
+    <p><strong>Average Sleep:</strong> {avg_sleep}/10</p>
+    <p><strong>Average Nutrition:</strong> {avg_nutrition}/10</p>
+    <p><strong>Average Stress:</strong> {avg_stress}/10</p>
+
+    <p><strong>Latest Win:</strong> {latest['win']}</p>
+    <p><strong>Latest Struggle:</strong> {latest['struggle']}</p>
+
+    <hr>
+    """
+
+
+def build_recent_prs(client_name):
+    workouts = load_workouts()
+
+    client_prs = [
+        workout
+        for workout in workouts
+        if workout["client"].lower() == client_name.lower()
+        and workout.get("is_pr")
+    ]
+
+    if not client_prs:
+        return """
+        <h2>⭐ Recent PRs</h2>
+        <p>No PRs logged yet.</p>
+        """
+
+    prs_html = "<h2>⭐ Recent PRs</h2>"
+
+    for personal_record in reversed(client_prs[-5:]):
+        prs_html += f"""
+        <div class="card">
+            <p><strong>Date:</strong> {personal_record['date'][:10]}</p>
+            <p><strong>Exercise:</strong> {personal_record['exercise']}</p>
+            <p><strong>Weight:</strong> {personal_record['weight']}</p>
+            <p><strong>Reps:</strong> {personal_record['reps']}</p>
+        </div>
+        """
+
+    return prs_html
+
+
+def build_pr_table(client_name):
+    workouts = load_workouts()
+    personal_records = {}
+
+    for workout in workouts:
+        if workout["client"].lower() != client_name.lower():
+            continue
+
+        if not workout.get("is_pr"):
+            continue
+
+        exercise = workout["exercise"]
+        personal_records[exercise] = workout
+
+    if not personal_records:
+        return """
+        <h2>🏆 Current Personal Records</h2>
+        <p>No PRs yet.</p>
+        """
+
+    table_html = """
+    <h2>🏆 Current Personal Records</h2>
+
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Exercise</th>
+            <th>Best Lift</th>
+        </tr>
+    """
+
+    for exercise, personal_record in sorted(personal_records.items()):
+        table_html += f"""
+        <tr>
+            <td>{exercise}</td>
+            <td>{personal_record['weight']} × {personal_record['reps']}</td>
+        </tr>
+        """
+
+    table_html += "</table><br>"
+    return table_html
+
+
+def build_attendance_streak(client_checkins):
+    total = len(client_checkins)
+
+    if total == 1:
+        return "🔥 1 Check-In"
+
+    return f"🔥 {total} Check-Ins"
+
+
+def build_workout_history(client_name):
+    workouts = load_workouts()
+
+    client_workouts = [
+        workout
+        for workout in workouts
+        if workout["client"].lower() == client_name.lower()
+    ]
+
+    if not client_workouts:
+        return """
+        <h2>🏋️ Workout History</h2>
+        <p>No workouts recorded yet.</p>
+        <p>Log this client's first workout to begin tracking progress.</p>
+        """
+
+    workout_html = "<h2>🏋️ Workout History</h2>"
+
+    client_workouts.sort(
+        key=lambda workout: workout.get("date", ""),
+        reverse=True,
+    )
+
+    for workout in client_workouts:
+        pr_badge = " ⭐ PR" if workout.get("is_pr") else ""
+
+        workout_html += f"""
+        <div class="card">
+            <p><strong>Date:</strong> {workout['date'][:10]}</p>
+            <p>
+                <strong>Exercise:</strong>
+                {workout['exercise']}{pr_badge}
+            </p>
+            <p><strong>Weight:</strong> {workout['weight']}</p>
+            <p><strong>Reps:</strong> {workout['reps']}</p>
+            <p><strong>Notes:</strong> {workout.get('notes', '')}</p>
+        </div>
+        """
+
+    return workout_html
+
+
+@app.route("/")
+def home():
+    return render_template("home.html")
+
+
+@app.route("/checkin", methods=["GET", "POST"])
+def checkin():
+    if request.method == "POST":
+        checkin_data = {
+            "date": datetime.now().isoformat(),
+            "client": request.form.get("client", "").strip(),
+            "weight": request.form.get("weight", "").strip(),
+            "goal": request.form.get("goal", "").strip(),
+            "energy": request.form.get("energy", "").strip(),
+            "sleep": request.form.get("sleep", "").strip(),
+            "nutrition": request.form.get("nutrition", "").strip(),
+            "stress": request.form.get("stress", "").strip(),
+            "win": request.form.get("win", "").strip(),
+            "struggle": request.form.get("struggle", "").strip(),
+            "coach_note": "",
+        }
+
+        checkins = load_checkins()
+        checkins.append(checkin_data)
+        save_checkins(checkins)
+
+        feedback = generate_coach_feedback(checkin_data)
+        actions = generate_action_items(checkin_data)
+        workout_recommendation = recommend_workout(checkin_data)
+        compliance = calculate_compliance_score(checkin_data)
+
+        feedback_html = "".join(
+            f"<li>{item}</li>"
+            for item in feedback
+        )
+        actions_html = "".join(
+            f"<li>{item}</li>"
+            for item in actions
+        )
+
+        return f"""
+        <h1>Check-in Submitted ✅</h1>
+
+        <p><strong>Client:</strong> {checkin_data['client']}</p>
+        <p><strong>Weight:</strong> {checkin_data['weight']}</p>
+        <p><strong>Goal:</strong> {checkin_data['goal']}</p>
+        <p><strong>Energy:</strong> {checkin_data['energy']}/10</p>
+        <p><strong>Sleep:</strong> {checkin_data['sleep']}/10</p>
+        <p><strong>Nutrition:</strong> {checkin_data['nutrition']}/10</p>
+        <p><strong>Stress:</strong> {checkin_data['stress']}/10</p>
+        <p><strong>Win:</strong> {checkin_data['win']}</p>
+        <p><strong>Struggle:</strong> {checkin_data['struggle']}</p>
+
+        <hr>
+
+        <h2>🤖 Coach Feedback</h2>
+        <ul>{feedback_html}</ul>
+
+        <hr>
+
+        <h2>📋 Action Plan for This Week</h2>
+        <ul>{actions_html}</ul>
+
+        <hr>
+
+        <h2>🏋️ Workout Recommendation</h2>
+        <p>{workout_recommendation}</p>
+
+        <hr>
+
+        <h2>📈 Weekly Compliance Score</h2>
+
+        <div class="progress-container">
+            <div
+                class="progress-bar"
+                style="width:{compliance}%;">
+            </div>
+        </div>
+
+        <h2>{compliance}%</h2>
+
+        <p>
+            <strong>Main Focus:</strong>
+            {checkin_data['struggle']}
+        </p>
+
+        <br>
+        <a href="/checkin">Submit another check-in</a><br>
+        <a href="{coach_dashboard_link()}">View dashboard</a>
+        """
+
+    return """
+    <h1>AI Fitness Check-In</h1>
+
+    <form method="POST">
+        <label>Client Name:</label><br>
+        <input name="client" required><br><br>
+
+        <label>Weight:</label><br>
+        <input name="weight" required><br><br>
+
+        <label>Primary Goal:</label><br>
+        <select name="goal" required>
+            <option value="">Select Goal</option>
+            <option>Lose Fat</option>
+            <option>Build Muscle</option>
+            <option>Improve Strength</option>
+            <option>Improve Endurance</option>
+            <option>General Health</option>
+        </select><br><br>
+
+        <label>Energy 1-10:</label><br>
+        <input
+            name="energy"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <label>Sleep 1-10:</label><br>
+        <input
+            name="sleep"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <label>Nutrition 1-10:</label><br>
+        <input
+            name="nutrition"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <label>Stress 1-10:</label><br>
+        <input
+            name="stress"
+            type="number"
+            min="1"
+            max="10"
+            required>
+        <br><br>
+
+        <label>Biggest win this week:</label><br>
+        <textarea name="win" required></textarea><br><br>
+
+        <label>Biggest struggle this week:</label><br>
+        <textarea name="struggle" required></textarea><br><br>
+
+        <button type="submit">Submit Check-In</button>
+    </form>
+    """
+
+
+
+@app.route("/workout", methods=["GET", "POST"])
+def workout_logger():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    selected_client = request.args.get("client", "").strip()
+
+    if request.method == "POST":
+        client_name = request.form.get("client", "").strip()
+        exercise = request.form.get("exercise", "").strip()
+        weight = request.form.get("weight", "").strip()
+        reps = request.form.get("reps", "").strip()
+        notes = request.form.get("notes", "").strip()
+
+        # Validate required fields
+        if not client_name or not exercise:
+            return "Client name and exercise are required.", 400
+
+        # Validate weight and reps
+        try:
+            weight_number = float(weight)
+            reps_number = int(reps)
+        except (ValueError, TypeError, OverflowError):
+            return "Weight and reps must be valid numbers.", 400
+
+        # Prevent negative, zero, or non-finite values
+        if (
+            not (-float("inf") < weight_number < float("inf"))
+            or weight_number < 0
+            or reps_number <= 0
+        ):
+            return (
+                "Weight must be a valid non-negative number "
+                "and reps must be positive.",
+                400,
+            )
+
+        # Check for a new personal record
+        is_pr = check_for_new_pr(
+            client_name,
+            exercise,
+            weight,
+        )
+
+        # Create workout record
+        workout_data = {
+            "date": datetime.now().isoformat(),
+            "client": client_name,
+            "exercise": exercise,
+            "weight": weight,
+            "reps": reps,
+            "is_pr": is_pr,
+            "notes": notes,
+        }
+
+        # Save workout to JSON
+        workouts = load_workouts()
+        workouts.append(workout_data)
+        save_workouts(workouts)
+
+        return f"""
+        <h1>Workout Saved ✅</h1>
+
+        <p><strong>Client:</strong> {workout_data['client']}</p>
+        <p><strong>Exercise:</strong> {workout_data['exercise']}</p>
+        <p><strong>Weight:</strong> {workout_data['weight']}</p>
+        <p><strong>Reps:</strong> {workout_data['reps']}</p>
+
+        <p>
+            <strong>PR:</strong>
+            {"Yes" if workout_data['is_pr'] else "No"}
+        </p>
+
+        <p><strong>Notes:</strong> {workout_data['notes']}</p>
+
+        <br>
+
+        <a href="/workout?client={workout_data['client']}">
+            Log another workout for {workout_data['client']}
+        </a>
+
+        <br>
+
+        <a href="/client/{workout_data['client']}">
+            View client profile
+        </a>
+
+        <br>
+
+        <a href="{coach_dashboard_link()}">
+            Back to Dashboard
+        </a>
+        """
+
+    # Display workout form for GET requests
+    return f"""
+    <h1>Log Workout</h1>
+
+   <form
+    method="POST"
+    action="/workout?client={selected_client}"
+    onsubmit="disableWorkoutButton()">
+
+        <label>Client Name:</label><br>
+
+        <input
+            name="client"
+            value="{selected_client}"
+            required>
+        <br><br>
+
+        <label>Exercise:</label><br>
+
+        <select name="exercise" required>
+            <option value="">Select Exercise</option>
+            <option>Trap Bar Deadlift</option>
+            <option>Bench Press</option>
+            <option>Goblet Squat</option>
+            <option>Push-Up</option>
+            <option>Pull-Up</option>
+            <option>Farmer Carry</option>
+            <option>Plank</option>
+            <option>Row</option>
+            <option>Other</option>
+        </select>
+        <br><br>
+
+        <label>Weight (lbs):</label><br>
+<input type="number" name="weight" min="0" step="0.5" required><br><br>
+
+<label>Reps:</label><br>
+<input type="number" name="reps" min="1" step="1" required><br><br>
+
+        <label>Notes:</label><br>
+        <textarea name="notes"></textarea><br><br>
+        <button type="submit" id="saveWorkoutButton">
+    Save Workout
+</button>
+
+<button type="reset">
+    Clear Form
+</button>
+
+<a href="/dashboard">Cancel</a>
+    </form>
+
+    <script>
+    function disableWorkoutButton() {{
+        const button = document.getElementById("saveWorkoutButton");
+        button.disabled = true;
+        button.textContent = "Saving...";
+    }}
+</script>
+    <br>
+
+    <a href="{coach_dashboard_link()}">
+        Back to Dashboard
+    </a>
+    """
+
+
+@app.route("/coach-login", methods=["GET", "POST"])
+def coach_login():
+    error = ""
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+
+        if password == COACH_PASSWORD:
+            session["coach_logged_in"] = True
+            return redirect("/dashboard")
+
+        error = "Incorrect password."
+
+    return f"""
+    <h1>Coach Login</h1>
+
+    <form method="POST">
+        <label>Password:</label>
+
+        <input
+            type="password"
+            name="password"
+            required>
+
+        <button type="submit">
+            Login
+        </button>
+    </form>
+
+    <p>{error}</p>
+    """
+
+
+@app.route("/logout")
+def logout():
+    session.pop("coach_logged_in", None)
+
+    return redirect("/coach-login")
+
+
+@app.route("/dashboard")
+def dashboard():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    checkins = load_checkins()
+    workouts = load_workouts()
+    latest_checkins = {}
+
+    for checkin_id, checkin in enumerate(checkins):
+        client_name = checkin["client"].strip().lower()
+
+        latest_checkins[client_name] = (
+            checkin_id,
+            checkin,
+        )
+
+    dashboard_checkins = list(
+        latest_checkins.values()
+    )
+
+    dashboard_checkins = sorted(
+        dashboard_checkins,
+        key=lambda item: get_risk_priority(item[1]),
+        reverse=True,
+    )
+
+    priority_clients = []
+
+    for checkin_id, checkin in dashboard_checkins:
+        risk, _ = calculate_risk_level(checkin)
+
+        if risk == "High":
+            priority_clients.append(
+                (checkin_id, checkin, risk)
+            )
+
+    if priority_clients:
+        priority_cards = ""
+
+        for checkin_id, checkin, risk in priority_clients:
+            reasons = get_risk_reasons(checkin)
+            reason_text = " • ".join(reasons)
+
+            priority_cards += f"""
+            <a
+                class="priority-client"
+                href="/client/{checkin['client']}">
+
+                <strong>{checkin['client']}</strong>
+
+                <div>
+                    <span>
+                        {risk} Risk
+                    </span>
+
+                    <small>
+                        {reason_text}
+                    </small>
+                </div>
+
+            </a>
+            """
+
+        priority_html = f"""
+        <div class="priority-panel">
+
+            <div class="priority-header">
+                <div>
+                    <span class="priority-kicker">
+                        Coach Priority
+                    </span>
+
+                    <h2>🚨 Needs Attention</h2>
+                </div>
+
+                <strong class="priority-count">
+                    {len(priority_clients)}
+                </strong>
+            </div>
+
+            <div class="priority-list">
+                {priority_cards}
+            </div>
+
+        </div>
+        """
+
+    else:
+        priority_html = """
+        <div class="priority-panel priority-clear">
+            <strong>✅ No high-risk clients right now.</strong>
+        </div>
+        """
+
+    cards = ""
+
+    total_checkins = len(checkins)
+    clients = sorted(
+        set(checkin["client"] for checkin in checkins)
+    )
+    total_clients = len(clients)
+
+    follow_up = sum(
+        1
+        for _, checkin in dashboard_checkins
+        if (
+            datetime.now()
+            - datetime.fromisoformat(checkin["date"])
+        ).days >= 7
+    )
+
+    leaderboard = {}
+
+    for checkin in checkins:
+        client = checkin["client"]
+        leaderboard[client] = leaderboard.get(client, 0) + 1
+
+    most_active = "-"
+
+    if leaderboard:
+        most_active = max(
+            leaderboard,
+            key=leaderboard.get,
+        )
+
+    stats_html = f"""
+    <div class="stats-bar">
+        <div class="stat-card">
+            <h3>👥 Clients</h3>
+            <p>{total_clients}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>📝 Check-Ins</h3>
+            <p>{total_checkins}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>🚨 Follow-Ups</h3>
+            <p>{follow_up}</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>🏆 Most Active</h3>
+            <p>{most_active}</p>
+        </div>
+    </div>
+    """
+
+    if not checkins:
+        return f"""
+
+        <p>
+    <a href="/practice">
+        👥 Client Directory
+    </a>
+</p>
+
+        <h1>Coach Dashboard</h1>
+
+        <p>No check-ins yet.</p>
+
+        <p>
+            <a href="/checkin">
+                Submit new check-in
+            </a>
+        </p>
+
+        <p>
+            <a href="/workout">
+                Log Workout
+            </a>
+        </p>
+
+        <p>
+            <a href="/search">
+                Search Clients
+            </a>
+        </p>
+
+        <p>
+            <a href="/leaderboard">
+                Client Leaderboard
+            </a>
+        </p>
+
+        {stats_html}
+        """
+
+    for checkin_id, checkin in dashboard_checkins:
+        risk, color = calculate_risk_level(checkin)
+
+        attention_items = []
+
+        if int(checkin["sleep"]) <= 5:
+            attention_items.append("low sleep")
+
+        if int(checkin["energy"]) <= 5:
+            attention_items.append("low energy")
+
+        if int(checkin["nutrition"]) <= 5:
+            attention_items.append("nutrition")
+
+        if int(checkin["stress"]) >= 7:
+            attention_items.append("high stress")
+
+        if attention_items:
+            attention_text = ", ".join(attention_items)
+            attention_class = "attention-warning"
+            attention_message = f"⚠️ Needs attention: {attention_text}"
+        else:
+            attention_class = "attention-good"
+            attention_message = "✅ No urgent issues"
+
+        client_workouts = [
+            workout
+            for workout in workouts
+            if workout.get("client", "").strip().lower()
+            == checkin["client"].strip().lower()
+        ]
+
+        if client_workouts:
+            last_workout_date = client_workouts[-1].get(
+                "date",
+                "Unknown",
+            )[:10]
+        else:
+            last_workout_date = "No workouts yet"
+
+        current_prs = {
+            workout.get("exercise", "").strip().lower()
+            for workout in client_workouts
+            if workout.get("is_pr")
+        }
+
+        total_workouts = len(client_workouts)
+        total_prs = len(current_prs)
+
+        latest_workout = (
+            client_workouts[-1]
+            if client_workouts
+            else None
+        )
+
+        if latest_workout:
+            latest_workout_html = f"""
+            <div class="dashboard-latest-workout">
+                <span class="latest-workout-label">
+                    🏋️ Latest Workout
+                </span>
+
+                <strong>
+                    {latest_workout['exercise']}
+                </strong>
+
+                <p>
+                    {latest_workout['weight']} lbs
+                    ×
+                    {latest_workout['reps']} reps
+                </p>
+
+                <small>
+                    {latest_workout['date'][:10]}
+                </small>
+            </div>
+            """
+        else:
+            latest_workout_html = """
+            <div class="dashboard-latest-workout workout-empty">
+                <span class="latest-workout-label">
+                    🏋️ Latest Workout
+                </span>
+
+                <p>No workouts logged yet.</p>
+            </div>
+            """
+
+        checkin_date = datetime.fromisoformat(checkin["date"])
+        days_since = (datetime.now() - checkin_date).days
+
+        followup = ""
+
+        if days_since >= 7:
+            followup = " 🚨 Follow Up"
+
+        cards += f"""
+        <div class="card">
+            <h2>
+                <a
+                    href="/client/{checkin['client']}">
+                    {checkin['client']}
+                </a>
+            </h2>
+
+            <p>
+                <strong>Risk Level:</strong>
+
+                <span
+                    style="
+                        background:{color};
+                        color:white;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        font-weight:bold;
+                    ">
+                    {risk}
+                </span>
+            </p>
+
+            <div class="coach-attention {attention_class}">
+                {attention_message}
+            </div>
+
+            <div class="client-summary-strip">
+
+                <div class="summary-item">
+                    <span>Last Check-In</span>
+                    <strong>{days_since}d</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Workouts</span>
+                    <strong>{total_workouts}</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>PRs</span>
+                    <strong>{total_prs}</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Weight</span>
+                    <strong>{checkin['weight']}</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Last Workout</span>
+                    <strong>{last_workout_date}</strong>
+                </div>
+
+            </div>
+
+            {latest_workout_html}
+
+            <details class="client-details">
+                <summary>
+                    View Coaching Details
+                </summary>
+
+                <div class="client-details-content">
+
+            <p><strong>Date:</strong> {checkin['date'][:10]}</p>
+            <p>
+                <strong>Goal:</strong>
+                {checkin.get('goal', 'Not set')}
+            </p>
+            <p><strong>Energy:</strong> {checkin['energy']}/10</p>
+            <p><strong>Sleep:</strong> {checkin['sleep']}/10</p>
+            <p>
+                <strong>Nutrition:</strong>
+                {checkin['nutrition']}/10
+            </p>
+            <p><strong>Stress:</strong> {checkin['stress']}/10</p>
+            <div class="coach-insights-grid">
+
+    <div class="coach-insight insight-win">
+        <span class="insight-label">🏆 Weekly Win</span>
+
+        <p>
+            {checkin['win']}
+        </p>
+    </div>
+
+    <div class="coach-insight insight-struggle">
+        <span class="insight-label">🎯 Current Focus</span>
+
+        <p>
+            {checkin['struggle']}
+        </p>
+    </div>
+
+</div>
+
+            <div class="client-quick-actions">
+                <a
+                    class="client-action action-profile"
+                    href="/client/{checkin['client']}">
+                    👤 Coach Profile
+                </a>
+
+                <a
+                    class="client-action action-log"
+                    href="/workout?client={checkin['client']}">
+                    🏋️ Log Workout
+                </a>
+
+                <a
+                    class="client-action action-checkin-small"
+                    href="/checkin?client={checkin['client']}">
+                    📝 Check-In
+                </a>
+            </div>
+
+            <p>
+                <strong>Coach Note:</strong>
+                {checkin.get('coach_note', 'None yet')}
+            </p>
+
+            <form
+                method="POST"
+                action="/note/{checkin_id}">
+
+                <input
+                    name="note"
+                    placeholder="Add coach note">
+
+                <button type="submit">
+                    Save Note
+                </button>
+            </form>
+
+                </div>
+            </details>
+        </div>
+        """
+
+    return f"""
+    <div class="dashboard-header">
+        <div>
+            <h1>Coach Dashboard</h1>
+            <p>Manage your clients, workouts, and weekly progress.</p>
+        </div>
+
+        <a class="logout-button" href="/logout">
+            Log Out
+        </a>
+    </div>
+
+    <div class="dashboard-actions">
+
+    <a
+    class="dashboard-action action-search"
+    href="/practice">
+    <span>👥</span>
+    <strong>Client Directory</strong>
+</a>
+
+    <a
+        class="dashboard-action action-checkin"
+        href="/checkin">
+        <span>📝</span>
+        <strong>New Check-In</strong>
+    </a>
+
+    <a
+        class="dashboard-action action-workout"
+        href="/workout">
+        <span>🏋️</span>
+        <strong>Log Workout</strong>
+    </a>
+
+    <a
+        class="dashboard-action action-search"
+        href="/search">
+        <span>🔎</span>
+        <strong>Search Clients</strong>
+    </a>
+
+    <a
+        class="dashboard-action action-leaderboard"
+        href="/leaderboard">
+        <span>🏆</span>
+        <strong>Leaderboard</strong>
+    </a>
+
+</div>
+    {stats_html}
+
+    {priority_html}
+
+    {cards}
+    """
+
+
+@app.route("/client/<client_name>")
+def client_history(client_name):
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    checkins = load_checkins()
+    client_checkins = [
+        (checkin_id, checkin)
+        for checkin_id, checkin in enumerate(checkins)
+        if checkin["client"].lower() == client_name.lower()
+    ]
+
+    if not client_checkins:
+        return f"""
+        <h1>No check-ins found for {client_name}</h1>
+        <a href="{coach_dashboard_link()}">
+            Back to Dashboard
+        </a>
+        """
+
+    weight_change = calculate_weight_change(client_checkins)
+    attendance = build_attendance_streak(client_checkins)
+    summary_html = build_client_summary(client_checkins)
+    workout_history = build_workout_history(client_name)
+    recent_prs = build_recent_prs(client_name)
+    pr_table = build_pr_table(client_name)
+    latest = client_checkins[-1][1]
+
+    profile_header = f"""
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {latest['client'][0].upper()}
+        </div>
+
+        <div>
+            <h1>{latest['client']}</h1>
+
+            <p>
+                🎯 Goal:
+                <strong>{latest.get('goal', 'Not Set')}</strong>
+            </p>
+
+            <p>
+                ⚖️ Current Weight:
+                <strong>{latest['weight']} lbs</strong>
+            </p>
+
+            <p>
+                <strong>{attendance}</strong>
+            </p>
+        </div>
+    </div>
+    """
+
+    history_items = []
+    previous = None
+
+    for checkin_id, checkin in client_checkins:
+        trend_html = build_trend_html(
+            checkin,
+            previous,
+        )
+
+        history_items.append(
+            (
+                checkin_id,
+                checkin,
+                trend_html,
+            )
+        )
+
+        previous = checkin
+
+    history = ""
+
+    for checkin_id, checkin, trend_html in reversed(history_items):
+        history += f"""
+        <div class="card">
+            <p><strong>Date:</strong> {checkin['date'][:10]}</p>
+            <p><strong>Weight:</strong> {checkin['weight']}</p>
+            <p>
+                <strong>Goal:</strong>
+                {checkin.get('goal', 'Not set')}
+            </p>
+            <p><strong>Energy:</strong> {checkin['energy']}/10</p>
+            <p><strong>Sleep:</strong> {checkin['sleep']}/10</p>
+            <p>
+                <strong>Nutrition:</strong>
+                {checkin['nutrition']}/10
+            </p>
+            <p><strong>Stress:</strong> {checkin['stress']}/10</p>
+            <p><strong>Win:</strong> {checkin['win']}</p>
+            <p><strong>Struggle:</strong> {checkin['struggle']}</p>
+
+            {trend_html}
+
+            <p>
+                <strong>Coach Note:</strong>
+                {checkin.get('coach_note', 'None yet')}
+            </p>
+
+            <form
+                method="POST"
+                action="/note/{checkin_id}">
+
+                <input
+                    name="note"
+                    placeholder="Add coach note">
+
+                <button type="submit">
+                    Save Note
+                </button>
+            </form>
+        </div>
+        """
+
+    return f"""
+    {profile_header}
+
+    {summary_html}
+
+    <h3>{weight_change}</h3>
+
+    <p>
+        <a
+            href="/workout?client={latest['client']}">
+            + Log Workout for {latest['client']}
+        </a>
+    </p>
+
+    <a href="{coach_dashboard_link()}">
+        ← Back to Dashboard
+    </a>
+
+    <hr>
+
+    {pr_table}
+
+    <hr>
+
+    {recent_prs}
+
+    <hr>
+
+    {workout_history}
+
+    <hr>
+
+    <h2>✅ Check-In History</h2>
+
+    {history}
+    """
+
+
+@app.route("/note/<int:checkin_id>", methods=["POST"])
+def add_note(checkin_id):
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    checkins = load_checkins()
+
+    if checkin_id < 0 or checkin_id >= len(checkins):
+        return "Check-in not found.", 404
+
+    note = request.form.get("note", "").strip()
+    checkins[checkin_id]["coach_note"] = note
+
+    save_checkins(checkins)
+
+    return f"""
+    <h1>Coach Note Saved ✅</h1>
+
+    <a href="{coach_dashboard_link()}">
+        Back to Dashboard
+    </a>
+    """
+
+
+@app.route("/search")
+def search_clients():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    query = request.args.get("q", "").strip().lower()
+    checkins = load_checkins()
+
+    matches = []
+
+    for checkin in checkins:
+        if query in checkin["client"].lower():
+            matches.append(checkin["client"])
+
+    unique_matches = sorted(set(matches))
+    results = ""
+
+    for client in unique_matches:
+        results += f"""
+        <li>
+            <a href="/client/{client}">
+                {client}
+            </a>
+        </li>
+        """
+
+    return f"""
+    <h1>Client Search</h1>
+
+    <form>
+        <input
+            name="q"
+            placeholder="Search client"
+            value="{query}">
+
+        <button type="submit">
+            Search
+        </button>
+    </form>
+
+    <ul>
+        {results}
+    </ul>
+
+    <p>
+        <a href="/leaderboard">
+            Client Leaderboard
+        </a>
+    </p>
+
+    <a href="{coach_dashboard_link()}">
+        Back to Dashboard
+    </a>
+    """
+
+
+@app.route("/leaderboard")
+def leaderboard():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    checkins = load_checkins()
+    counts = {}
+
+    for checkin in checkins:
+        client = checkin["client"]
+        counts[client] = counts.get(client, 0) + 1
+
+    sorted_clients = sorted(
+        counts.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+
+    leaderboard_html = ""
+
+    for rank, (client, total) in enumerate(
+        sorted_clients,
+        start=1,
+    ):
+        leaderboard_html += f"""
+        <li>
+            #{rank} -
+
+            <a href="/client/{client}">
+                {client}
+            </a>
+
+            ({total} check-ins)
+        </li>
+        """
+
+    return f"""
+    <h1>🏆 Client Leaderboard</h1>
+
+    <ol>
+        {leaderboard_html}
+    </ol>
+
+    <a href="{coach_dashboard_link()}">
+        Back to Dashboard
+    </a>
+    """
+@app.route("/practice")
+def practice():
+    if not is_coach_logged_in():
+        return redirect("/coach-login")
+
+    checkins = load_checkins()
+
+    unique_clients = set()
+
+    for checkin in checkins:
+        client_name = checkin["client"].strip()
+        if client_name:
+            unique_clients.add(client_name.lower())
+
+    client_names = sorted(unique_clients)
+    total_clients = len(client_names)
+
+    return render_template(
+        "practice.html",
+        coach="Coach",
+        clients=total_clients,
+        client_names=client_names
+    )
+
+@app.route("/health")
+def health_check():
+    return {"status": "ok"}, 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
+
