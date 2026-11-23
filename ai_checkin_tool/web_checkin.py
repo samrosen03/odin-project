@@ -446,7 +446,21 @@ def build_workout_history(client_name):
         <p>Log this client's first workout to begin tracking progress.</p>
         """
 
-    workout_html = "<h2>🏋️ Workout History</h2>"
+        total_workouts = len(client_workouts)
+
+    unique_exercises = {
+        workout["exercise"].strip().lower()
+        for workout in client_workouts
+        if workout.get("exercise", "").strip()
+    }
+
+    total_exercises = len(unique_exercises)
+
+    workout_html = f"""
+    <h2>🏋️ Workout History</h2>
+    <p><strong>Total Workouts:</strong> {load_workouts()}</p>
+    <p><strong>Different Exercises:</strong> {total_exercises}</p>
+    """
 
     client_workouts.sort(
         key=lambda workout: workout.get("date", ""),
