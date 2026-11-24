@@ -453,13 +453,19 @@ def build_workout_history(client_name):
         for workout in client_workouts
         if workout.get("exercise", "").strip()
     }
+    
+    total_exercises = new_func(unique_exercises)
 
-    total_exercises = len(unique_exercises)
+    last_workout = max(
+        workout.get("date", "")
+        for workout in client_workouts
+    )[:10]
 
     workout_html = f"""
     <h2>🏋️ Workout History</h2>
     <p><strong>Total Workouts:</strong> {load_workouts()}</p>
     <p><strong>Different Exercises:</strong> {total_exercises}</p>
+    <p><strong>Last Workout:</strong> {last_workout}</p>
     """
 
     client_workouts.sort(
@@ -484,6 +490,10 @@ def build_workout_history(client_name):
         """
 
     return workout_html
+
+def new_func(unique_exercises):
+    total_exercises = len(unique_exercises)
+    return total_exercises
 
 
 @app.route("/")
