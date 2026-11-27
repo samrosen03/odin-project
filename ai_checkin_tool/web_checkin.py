@@ -651,8 +651,18 @@ def checkin():
         <label>Biggest struggle this week:</label><br>
         <textarea name="struggle" required></textarea><br><br>
 
-        <button type="submit">Submit Check-In</button>
+                <button type="submit" id="checkinButton">
+            Submit Check-In
+        </button>
     </form>
+
+    <script>
+        function disableCheckinButton() {{
+            const button = document.getElementById("checkinButton");
+            button.disabled = true;
+            button.textContent = "Submitting...";
+        }}
+    </script>
     """
 
 
@@ -834,7 +844,7 @@ def coach_login():
     return f"""
     <h1>Coach Login</h1>
 
-    <form method="POST">
+    <form method="POST" onsubmit="disableCheckinButton()">
         <label>Password:</label>
 
         <input
